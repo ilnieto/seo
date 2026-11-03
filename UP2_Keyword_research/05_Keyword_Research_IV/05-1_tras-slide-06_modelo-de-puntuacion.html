@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelo de puntuación de keywords</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+
+:root{
+  --bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;--ink:#ffffff;--muted:#f0f3f6;
+  --accent:#4dd9c0;--accent-2:#f2a154;--violet:#a78bfa;--good:#7cd992;--danger:#e2725b;
+  --accent-dim:rgba(77,217,192,.12);--accent2-dim:rgba(242,161,84,.12);--violet-dim:rgba(167,139,250,.12);--danger-dim:rgba(226,114,91,.12);
+}
+*{box-sizing:border-box;}
+html,body{background:var(--bg);}
+body{margin:0;color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;padding:44px 20px 140px;}
+.wrap{max-width:1080px;margin:0 auto;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px;}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:clamp(20px,4.2vw,29px);font-weight:600;margin:0 0 10px;text-wrap:balance;}
+.sub{text-align:center;color:var(--muted);font-size:14px;max-width:680px;margin:0 auto 30px;line-height:1.55;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+.lbl{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:9px;}
+.note{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:center;min-height:34px;line-height:1.5;padding:0 10px;margin-top:18px;}
+.timeline{max-width:1080px;margin:20px auto 0;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+.timeline-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .05s linear;}
+.verdict{text-align:center;margin:20px auto 0;max-width:720px;font-size:14px;color:var(--muted);line-height:1.6;min-height:30px;opacity:0;transition:opacity .4s;}
+.verdict.show{opacity:1;}
+.verdict b{color:var(--ink);font-weight:600;}
+.controls{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px);max-width:1080px;margin:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,.5);}
+.ctrl-group{display:flex;align-items:center;gap:8px;}
+.ctrl-btn{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.03em;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s;}
+.ctrl-btn:hover:not(:disabled){border-color:var(--ink);}
+.ctrl-btn:disabled{opacity:.6;cursor:default;}
+.ctrl-btn.play{min-width:132px;border-color:var(--accent);color:var(--accent);}
+.ctrl-btn.step{font-size:14px;padding:8px 12px;}
+.ctrl-label{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+.speed-group{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+.speed-btn{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);background:var(--panel-2);border:none;padding:7px 11px;cursor:pointer;border-right:1px solid var(--line);transition:background .2s,color .2s;}
+.speed-btn:last-child{border-right:none;}
+.speed-btn.active{background:var(--accent-dim);color:var(--accent);}
+.step-counter{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-left:auto;}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important;animation-duration:.001ms !important;}}
+
+/* ---- shared components ---- */
+.stage-lr{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.stage-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+@media (max-width:820px){.stage-lr,.stage-3{grid-template-columns:1fr;}}
+.col{display:flex;flex-direction:column;gap:14px;}
+.panel-pad{padding:16px 18px;}
+.business-card{display:flex;align-items:center;gap:12px;}
+.business-ico{font-size:26px;line-height:1;}
+.business-txt b{display:block;color:var(--ink);font-size:14px;}
+.business-txt span{color:var(--muted);font-size:11.5px;font-family:"IBM Plex Mono",monospace;}
+.mono{font-family:"IBM Plex Mono",monospace;}
+.stack{display:flex;flex-direction:column;gap:7px;}
+.rowi{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);font-size:12.5px;color:var(--muted);transition:border-color .3s,color .3s,background .3s,opacity .3s;animation:pop .22s ease;}
+.rowi .grow{flex:1;}
+.rowi.hl{border-color:var(--accent);color:var(--ink);background:var(--accent-dim);}
+.rowi.warn{border-color:var(--accent-2);color:var(--ink);background:var(--accent2-dim);}
+.rowi.good{border-color:var(--good);color:var(--good);background:var(--accent-dim);}
+.rowi.bad{border-color:var(--danger);color:var(--danger);text-decoration:line-through;opacity:.75;}
+.rowi.dim{opacity:.6;}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;}
+.tag.info{color:var(--violet);border-color:var(--violet);background:var(--violet-dim);}
+.tag.com{color:var(--accent-2);border-color:var(--accent-2);background:var(--accent2-dim);}
+.tag.tra{color:var(--good);border-color:var(--good);background:var(--accent-dim);}
+.tag.nav{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+.tag.mix{color:var(--danger);border-color:var(--danger);background:var(--danger-dim);}
+.chiprow{display:flex;flex-wrap:wrap;gap:7px;min-height:28px;}
+.kchip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:6px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);opacity:0;transform:scale(.92);animation:pop .2s ease forwards;}
+.kchip.good{border-color:var(--good);color:var(--good);background:var(--accent-dim);}
+.kchip.warn{border-color:var(--accent-2);color:var(--accent-2);background:var(--accent2-dim);}
+.kchip.bad{border-color:var(--danger);color:var(--danger);text-decoration:line-through;}
+.kchip.dim{opacity:.6 !important;}
+@keyframes pop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.bar-lbl{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);width:150px;flex:none;line-height:1.3;}
+.bar-track{flex:1;height:11px;background:var(--panel-2);border-radius:5px;overflow:hidden;border:1px solid var(--line);}
+.bar-fill{height:100%;width:0%;border-radius:5px;transition:width .6s ease;background:linear-gradient(90deg,var(--accent-2),#d88b3f);}
+.bar-fill.g{background:linear-gradient(90deg,var(--accent),#2fae92);}
+.bar-fill.r{background:linear-gradient(90deg,var(--danger),#b9533f);}
+.bar-val{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);width:56px;flex:none;text-align:right;}
+.query-box{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:10px 12px;}
+.query-box mark{background:var(--accent2-dim);color:var(--accent-2);border-radius:3px;padding:0 3px;}
+.serp{display:flex;flex-direction:column;gap:6px;}
+.sres{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);font-size:12px;color:var(--ink);animation:pop .25s ease;}
+.sres .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:92px;flex:none;}
+.sres.feat{border-color:var(--violet);background:var(--violet-dim);}
+.sres.ad{border-color:var(--accent-2);background:var(--accent2-dim);}
+.sres.org{border-color:var(--line);}
+.sres.ai{border-color:var(--accent);background:var(--accent-dim);}
+.big{font-family:"IBM Plex Mono",monospace;font-size:44px;font-weight:600;color:var(--accent);line-height:1;}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--line);}
+.kv:last-child{border-bottom:none;}
+.kv span:first-child{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;}
+.empty{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);padding:6px 0;}
+table.t{width:100%;border-collapse:separate;border-spacing:0 5px;font-size:12px;}
+table.t th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:0 8px;}
+table.t td{padding:8px;background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);transition:background .3s,color .3s;}
+table.t td:first-child{border-left:1px solid var(--line);border-radius:7px 0 0 7px;}
+table.t td:last-child{border-right:1px solid var(--line);border-radius:0 7px 7px 0;}
+table.t tr.hl td{background:var(--accent-dim);color:var(--ink);border-color:var(--accent);}
+table.t tr.warn td{background:var(--accent2-dim);color:var(--ink);border-color:var(--accent-2);}
+table.t tr.bad td{color:var(--danger);text-decoration:line-through;opacity:.6;}
+table.t tr.dim td{opacity:.6;}
+table.t td.new{color:var(--accent);font-weight:600;animation:pop .3s ease;}
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">SEO · UP2 · Priorizar, seleccionar y comunicar</p>
+  <h1>Puntuar keywords: de los datos a la prioridad</h1>
+  <p class="sub">Convertimos volumen, dificultad, relevancia e intención en una escala de 1 a 5, ponderamos y obtenemos una prioridad. Tienda online de café de especialidad (datos ilustrativos).</p>
+
+  <div class="panel panel-pad"><span class="lbl" id="formula">Puntuación = 0,25·D + 0,25·F + 0,30·R + 0,20·I</span><table class="t" id="tbl"></table></div>
+  <div class="panel panel-pad" style="margin-top:16px"><span class="lbl">Escalas</span><div id="scale" class="mono" style="font-size:11px;color:var(--muted);line-height:1.8"></div></div>
+  <p class="note" id="noteBox"></p>
+  <div class="timeline"><div class="timeline-fill" id="fill"></div></div>
+  <p class="verdict" id="verdict"></p>
+  <div class="controls">
+    <div class="ctrl-group">
+      <button id="rewindBtn" class="ctrl-btn step" title="Rebobinar al principio">&#9198;</button>
+      <button id="prevBtn" class="ctrl-btn step" title="Paso anterior">&#9664;&#9664;</button>
+      <button id="playBtn" class="ctrl-btn play">&#9654; Reproducir</button>
+      <button id="nextBtn" class="ctrl-btn step" title="Paso siguiente">&#9654;&#9654;</button>
+      <button id="delayPlayBtn" class="ctrl-btn" title="Empezar tras una cuenta atrás de 10s">&#9654; +10s</button>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Velocidad</span>
+      <div class="speed-group">
+        <button class="speed-btn active" data-speed="0.25">0.25&times;</button>
+        <button class="speed-btn" data-speed="0.5">0.5&times;</button>
+        <button class="speed-btn" data-speed="1">1&times;</button>
+        <button class="speed-btn" data-speed="2">2&times;</button>
+      </div>
+    </div>
+    <span class="step-counter" id="stepCounter">Paso 1 / N</span>
+  </div>
+</div>
+<script>
+var noteBox = document.getElementById('noteBox');
+function $(id){ return document.getElementById(id); }
+
+var K=[
+ {k:'café de especialidad',v:'5.400',kd:45,D:5,F:3,R:5,I:4,it:'Comercial'},
+ {k:'comprar café en grano online',v:'720',kd:28,D:3,F:4,R:5,I:5,it:'Transaccional'},
+ {k:'cómo hacer café en cafetera italiana',v:'2.900',kd:22,D:4,F:4,R:3,I:2,it:'Informacional'},
+ {k:'cafetera nespresso oferta',v:'1.900',kd:25,D:4,F:4,R:1,I:5,it:'Transaccional'},
+ {k:'café',v:'90.500',kd:85,D:5,F:1,R:2,I:2,it:'Mixta'}
+];
+var SC={
+ D:'<b style="color:var(--accent-2)">D · Demanda</b> (volumen): &lt;50 → 1 · 50-199 → 2 · 200-999 → 3 · 1.000-4.999 → 4 · 5.000+ → 5',
+ F:'<b style="color:var(--accent-2)">F · Facilidad</b> (KD): 0-14 → 5 · 15-29 → 4 · 30-49 → 3 · 50-69 → 2 · 70+ → 1',
+ R:'<b style="color:var(--accent-2)">R · Relevancia</b>: tu valoración de 1 a 5 (1 = nada que ver con el negocio)',
+ I:'<b style="color:var(--accent-2)">I · Intención</b>: transaccional 5 · comercial 4 · mixta 3 · informacional 2 · navegacional 1'
+};
+var ORDER=['D','F','R','I'];
+function total(x){return Math.round((x.D*.25+x.F*.25+x.R*.30+x.I*.20)*100)/100;}
+function prio(x){ if(x.R<=1) return ['Descartar','bad']; var t=total(x); return t>=4?['1','good']:(t>=3?['2','warn']:['3','']); }
+function renderState(s){
+  var n=s.c||0, cur=ORDER[n-1];
+  var h='<tr><th>Keyword</th><th>Vol.</th><th>KD</th><th>Intención</th>'+ORDER.map(function(c,j){return '<th style="'+(j===n-1?'color:var(--accent)':'')+'">'+c+'</th>';}).join('')+'<th>Total</th><th>Prioridad</th></tr>';
+  h+=K.map(function(x){
+    var p=prio(x), rc='';
+    if(s.prio){ rc=p[1]==='good'?'hl':(p[1]==='bad'?'bad':(p[1]==='warn'?'warn':'')); }
+    return '<tr class="'+rc+'"><td>'+x.k+'</td><td class="mono">'+x.v+'</td><td class="mono">'+x.kd+'</td><td>'+x.it+'</td>'+ORDER.map(function(c,j){return '<td class="mono '+(j===n-1?'new':'')+'" style="text-align:center">'+(j<n?x[c]:'')+'</td>';}).join('')+
+      '<td class="mono '+(s.tot&&!s.prio?'new':'')+'">'+(s.tot?total(x).toFixed(2).replace('.',','):'')+'</td><td>'+(s.prio?'<span class="tag '+(p[1]==='good'?'tra':(p[1]==='bad'?'mix':(p[1]==='warn'?'com':'')))+'">'+p[0]+'</span>':'')+'</td></tr>';}).join('');
+  $('tbl').innerHTML=h;
+  $('scale').innerHTML=ORDER.slice(0,n).map(function(c){return SC[c];}).join('<br>')+(s.prio?'<br><b style="color:var(--accent)">Prioridad</b>: 1 si ≥ 4 · 2 si ≥ 3 · 3 si &lt; 3 · <span style="color:var(--danger)">Descartar si R = 1</span>':'')||'Aún sin escalas.';
+}
+var STATES=[
+ {note:'Cinco keywords con sus datos en bruto. ¿Cuál trabajamos primero? A ojo es fácil equivocarse.'},
+ {c:1,note:'D · Demanda: convertimos el volumen a una escala de 1 a 5. "café" y "café de especialidad" sacan un 5.'},
+ {c:2,note:'F · Facilidad: al revés que el KD. Cuanto más difícil, menos puntos. "café" (KD 85) se hunde a 1.'},
+ {c:3,note:'R · Relevancia: la decides tú. La tienda no vende Nespresso: relevancia 1.'},
+ {c:4,note:'I · Intención: lo transaccional vale más para una tienda que lo informacional.'},
+ {c:4,tot:1,note:'Ponderamos: la relevancia pesa más (30 %) porque sin ella no hay negocio.'},
+ {c:4,tot:1,prio:1,note:'Prioridades: 1 si ≥ 4, 2 si ≥ 3. Y regla eliminatoria: "nespresso oferta" puntúa 3,30, pero con relevancia 1 se descarta.'},
+ {c:4,tot:1,prio:1,verdict:'El modelo ordena, <b>la decisión es tuya</b>: revisa cada resultado contra la SERP y la competencia. "café" tiene el mayor volumen y acaba en <b>prioridad 3</b>.'}
+];
+var DURATIONS=[900,1000,1000,1000,1000,1000,1150,900];
+
+</script>
+<script>
+(function(){
+  var playBtn=$('playBtn'),prevBtn=$('prevBtn'),nextBtn=$('nextBtn'),rewindBtn=$('rewindBtn'),delayPlayBtn=$('delayPlayBtn');
+  var stepCounter=$('stepCounter'),fill=$('fill'),verdict=$('verdict');
+  var speedBtns=document.querySelectorAll('.speed-btn');
+  var curIndex=0,playing=false,speed=0.25,playTimer=null,countdownTimer=null;
+  function stopCountdown(){ if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;} delayPlayBtn.textContent='\u25B6 +10s'; playBtn.disabled=false; }
+  function show(i){
+    var s=STATES[i];
+    renderState(s,i);
+    noteBox.textContent=s.note||'';
+    verdict.innerHTML=s.verdict||'';
+    verdict.classList.toggle('show',!!s.verdict);
+    fill.style.width=(i/(STATES.length-1)*100)+'%';
+    stepCounter.textContent='Paso '+(i+1)+' / '+STATES.length;
+    prevBtn.disabled=(i===0); nextBtn.disabled=(i===STATES.length-1);
+  }
+  function stopPlay(){ playing=false; playBtn.textContent='\u25B6 Reproducir'; clearTimeout(playTimer); }
+  function scheduleNext(){
+    if(curIndex>=STATES.length-1){ stopPlay(); return; }
+    var dur=(DURATIONS[curIndex]||950)/speed;
+    playTimer=setTimeout(function(){ curIndex++; show(curIndex); scheduleNext(); },dur);
+  }
+  function startPlay(){ if(curIndex>=STATES.length-1){curIndex=0;show(0);} playing=true; playBtn.textContent='\u2758\u2758 Pausar'; scheduleNext(); }
+  playBtn.addEventListener('click',function(){ stopCountdown(); playing?stopPlay():startPlay(); });
+  prevBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=Math.max(0,curIndex-1); show(curIndex); });
+  nextBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=Math.min(STATES.length-1,curIndex+1); show(curIndex); });
+  rewindBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=0; show(0); });
+  speedBtns.forEach(function(b){ b.addEventListener('click',function(){ speedBtns.forEach(function(x){x.classList.remove('active');}); b.classList.add('active'); speed=parseFloat(b.getAttribute('data-speed')); }); });
+  delayPlayBtn.addEventListener('click',function(){
+    if(countdownTimer){ stopCountdown(); return; }
+    stopPlay(); var remaining=10; playBtn.disabled=true; delayPlayBtn.textContent='Empieza en '+remaining+'s\u2026';
+    countdownTimer=setInterval(function(){ remaining--; if(remaining<=0){ clearInterval(countdownTimer); countdownTimer=null; delayPlayBtn.textContent='\u25B6 +10s'; playBtn.disabled=false; startPlay(); } else { delayPlayBtn.textContent='Empieza en '+remaining+'s\u2026'; } },1000);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)) return;
+    var adv=['ArrowRight','ArrowDown','PageDown',' ','Spacebar'], back=['ArrowLeft','ArrowUp','PageUp','Backspace'];
+    if(adv.indexOf(e.key)!==-1){ e.preventDefault(); nextBtn.click(); } else if(back.indexOf(e.key)!==-1){ e.preventDefault(); prevBtn.click(); }
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>

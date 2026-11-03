@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solución A2 · Keyword research paso a paso</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;--ink:#ffffff;--muted:#f0f3f6;--accent:#4dd9c0;--accent-2:#f2a154;--good:#7cd992;--danger:#e2725b;}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;padding:28px 16px 150px;font-size:15px;line-height:1.5}
+.wrap{max-width:1180px;margin:0 auto}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:clamp(19px,4vw,27px);font-weight:600;margin:0 0 10px;text-wrap:balance}
+.sub{text-align:center;color:var(--muted);font-size:14px;max-width:700px;margin:0 auto 24px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;min-width:0}
+.lbl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin:0 0 9px}
+.phases{display:flex;gap:18px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:none}
+.phase{flex:0 0 auto;display:flex;flex-direction:column;gap:5px}
+.phase-name{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);opacity:.7;white-space:nowrap}
+.phase.on .phase-name{opacity:1;color:var(--accent);font-weight:600}
+.dots{display:flex;gap:4px}
+.dot{width:12px;height:12px;border-radius:50%;border:0;background:#2a333e;cursor:pointer;padding:0}
+.dot.done{background:rgba(77,217,192,.45)}
+.dot.on{background:var(--accent);box-shadow:0 0 0 3px rgba(77,217,192,.3)}
+.grid{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:14px;margin-top:6px;align-items:start}
+.right{display:grid;gap:14px;min-width:0}
+.steppanel h2{font-size:21px;line-height:1.25;margin:4px 0 8px;color:var(--accent)}
+.intro{font-size:14.5px;color:var(--muted);margin:0 0 14px}
+.marks{display:flex;flex-direction:column;gap:7px}
+.row{display:grid;grid-template-columns:24px 1fr;gap:3px 10px;padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);cursor:default}
+.row:hover,.row:focus-visible{border-color:var(--cc);outline:none}
+.row .n{width:22px;height:22px;border-radius:50%;background:var(--cc);color:#0b0e12;font:700 12px/22px "IBM Plex Mono",monospace;text-align:center}
+.row .tag{font-weight:600;font-size:14px;align-self:center}
+.row .why{grid-column:2;font-size:13.5px;color:var(--muted)}
+.srcpanel{min-height:120px}
+.srcpanel .lbl{color:var(--accent-2)}
+
+/* elementos marcados (regla: badge numerado + contorno del color de su punto clave) */
+[data-m="1"]{--cc:#4dd9c0}[data-m="2"]{--cc:#f2a154}[data-m="3"]{--cc:#a78bfa}
+[data-m="4"]{--cc:#7cd992}[data-m="5"]{--cc:#e2725b}[data-m="6"]{--cc:#60a5fa}
+[data-m]{position:relative;outline:2px solid var(--cc);outline-offset:3px;border-radius:6px}
+[data-m]::after{content:attr(data-m);position:absolute;top:-9px;left:-9px;width:18px;height:18px;border-radius:50%;background:var(--cc);color:#0b0e12;font:700 11px/18px "IBM Plex Mono",monospace;text-align:center;z-index:3}
+.hl{background:color-mix(in srgb,var(--cc) 16%,transparent)}
+
+/* fuente: formulario, semillas, sugerencias */
+.form{display:grid;gap:8px}
+.f{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;display:grid;gap:2px}
+.f span{font-family:"IBM Plex Mono",monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.seeds{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.seeds li{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.seeds code{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink)}
+.seeds span{font-size:13px;color:var(--muted)}
+.seeds li.ok code{color:var(--good)}
+.warn{margin-top:10px;padding:10px 12px;border-left:3px solid var(--accent-2);background:rgba(242,161,84,.1);border-radius:6px;font-size:13.5px}
+.acq{border:1px solid var(--line);border-radius:8px;background:var(--panel-2);padding:10px 12px;margin-bottom:9px}
+.acq .q{font-size:13.5px;color:var(--muted);margin-bottom:6px}
+.acq .q b{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-weight:500}
+.sug{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;padding:4px 6px;border-radius:5px;font-size:13.5px}
+.sug .ico{width:14px;font-weight:700}
+.sug.ok .ico{color:var(--good)}
+.sug.no .ico{color:var(--danger)}
+.sug.no .txt{color:var(--muted)}
+.sug.sec .ico{color:var(--accent-2)}
+.sug em{font-style:normal;font-size:12.5px;color:var(--muted);opacity:.9}
+.tip{margin-top:10px;font-size:13.5px;padding:9px 11px;border-radius:6px;background:var(--panel-2);border:1px dashed var(--line)}
+.block-title{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px}
+.quote{border-left:3px solid var(--accent);padding:8px 12px;background:var(--panel-2);border-radius:6px;margin-bottom:8px;font-size:13.5px}
+.quote em{display:block;color:var(--ink);font-style:italic}
+.quote span{color:var(--muted)}
+.trends{padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;font-size:13.5px;display:grid;gap:4px}
+.qbox{padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;margin-bottom:9px;display:grid;gap:3px}
+.qbox b{font-size:14.5px}
+.qbox span{font-size:13px;color:var(--muted)}
+.ex{padding:10px 12px;border-left:3px solid var(--danger);background:rgba(226,114,91,.08);border-radius:6px;display:grid;gap:6px;font-size:13.5px}
+.count{margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--accent)}
+.formula{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.7;margin-top:10px}
+.trap{margin-top:10px;padding:9px 11px;border-radius:6px;background:rgba(96,165,250,.1);font-size:13.5px}
+
+/* tablas */
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+.tablewrap{overflow:auto;max-width:100%;padding-top:10px}
+tr.new td{background:rgba(124,217,146,.12)}
+tr.new td:first-child{box-shadow:inset 3px 0 0 var(--good)}
+tr.mod td{background:rgba(226,114,91,.12)}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+.met td,.met th,.ub td,.ub th{font-size:12.5px}
+.ub .dim td{color:var(--muted)}
+.dec{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600}
+.dec.ok{background:rgba(124,217,146,.16);color:var(--good)}
+.dec.no{background:rgba(226,114,91,.16);color:var(--danger)}
+.pair{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2);margin-bottom:10px}
+.pair .ph{font-size:13.5px;color:var(--muted);margin-bottom:6px}
+.pair .ph b{color:var(--ink);font-family:"IBM Plex Mono",monospace;font-weight:500}
+.urls{margin:6px 0 0;padding-left:18px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);display:grid;gap:2px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.cl{border:1px solid var(--line);border-radius:8px;padding:11px;background:var(--panel-2);display:grid;gap:6px;font-size:13px}
+.clname{font-weight:600;font-size:14px;color:var(--accent-2)}
+.kv{color:var(--muted)}
+.kv b{display:block;color:var(--ink);font-family:"IBM Plex Mono",monospace;font-weight:500;font-size:12.5px;word-break:break-all}
+.small{font-size:12px;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:12px}
+.tile{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--panel-2)}
+.tile b{display:block;font-size:24px;font-family:"IBM Plex Mono",monospace;color:var(--accent)}
+.tile span{font-size:12.5px;color:var(--muted)}
+
+/* nota, veredicto y barra */
+.note{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--muted);text-align:center;min-height:36px;line-height:1.5;padding:0 10px;margin:18px 0 0}
+.timeline{max-width:1180px;margin:18px auto 0;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.timeline-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .3s linear}
+.verdict{text-align:center;margin:18px auto 0;max-width:760px;font-size:14px;color:var(--muted);line-height:1.6;min-height:28px;opacity:0;transition:opacity .4s}
+.verdict.show{opacity:1}
+.verdict b{color:var(--ink);font-weight:600}
+.controls{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:calc(100% - 28px);max-width:1180px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;z-index:10}
+.btns{display:flex;gap:6px;align-items:center}
+.btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn.play{background:var(--accent);border-color:var(--accent);color:#0b0e12}
+.btn svg{width:16px;height:16px}
+.counter{font-family:"IBM Plex Mono",monospace;font-size:13px;min-width:96px;text-align:center}
+select.speed{height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);padding:0 8px}
+kbd{font-family:inherit;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 5px}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+@media (max-width:560px){body{padding:18px 12px 190px}.controls{bottom:8px}}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+<style>
+.sub{color:#fff !important}
+.note,#noteBox{color:#fff !important;font-size:16px !important}
+.verdict{color:#fff !important;font-size:16px !important}
+.verdict b{color:#78d38f !important}
+body{padding-bottom:140px !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Solución paso a paso · UP2 · A2 · DEMO</div>
+  <h1>Keyword research de Café Alba, de la hoja vacía a los 5 clusters</h1>
+  <p class="sub">27 keywords, 7 fuentes y un descarte documentado. En cada paso ves de dónde sale una keyword y por qué entra o queda fuera.</p>
+
+  <div class="phases" id="phases" aria-label="Fases"></div>
+
+  <div class="grid">
+    <section class="panel steppanel">
+      <div class="lbl" id="phaseName"></div>
+      <h2 id="stepTitle"></h2>
+      <p class="intro" id="stepIntro"></p>
+      <span class="lbl">Puntos clave</span>
+      <div class="marks" id="marks"></div>
+    </section>
+    <div class="right">
+      <section class="panel srcpanel">
+        <div class="lbl" id="srcLabel"></div>
+        <div id="src"></div>
+      </section>
+      <section class="panel">
+        <div class="lbl">Hoja Keywords · plantilla resuelta</div>
+        <div class="tablewrap" id="sheet"></div>
+      </section>
+    </div>
+  </div>
+
+  <p class="note" id="noteBox"></p>
+  <div class="timeline"><div class="timeline-fill" id="tfill"></div></div>
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<div class="controls">
+  <div class="btns">
+    <button class="btn" id="bRestart" title="Volver al principio (R)" aria-label="Volver al principio"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8a5 5 0 1 0 1.5-3.5M3 2v3h3"/></svg></button>
+    <button class="btn" id="bPrev" title="Paso anterior (←)" aria-label="Paso anterior"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 3 5 8l5 5"/></svg></button>
+    <button class="btn play" id="bPlay" title="Reproducir (Espacio)" aria-label="Reproducir"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg></button>
+    <button class="btn" id="bNext" title="Paso siguiente (→)" aria-label="Paso siguiente"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 3 5 5-5 5"/></svg></button>
+    <span class="counter" id="counter" aria-live="polite"></span>
+  </div>
+  <div class="btns">
+    <select class="speed" id="speed" aria-label="Velocidad">
+      <option value="lenta">Lenta</option><option value="normal" selected>Normal</option><option value="rapida">Rápida</option>
+    </select>
+  </div>
+</div>
+<!--PART2-->
+<script>
+// Datos reales de la plantilla resuelta (hoja Keywords). Cifras ilustrativas de la demo.
+const PHASES = ["Proyecto","Semillas","Expandir","Filtrar","Clusters"];
+const CL = ["Café de especialidad","Café en grano y molido","Cafetera italiana","Molinillos","Catas y cursos (local)"];
+// [id, cluster, keyword, rol, fuente, volumen, kd, cpc, tendencia, intención, fase, relevancia, url, D, F, R, I, puntuación, prioridad]
+const RAW = [
+[1,0,"café de especialidad","Principal","Semilla",5400,45,"0,85","Creciente","Comercial","MOFU",5,"/cafe-de-especialidad/",5,3,5,4,4.3,1],
+[2,0,"qué es el café de especialidad","Secundaria","Otras preguntas / AlsoAsked",1300,20,"0,30","Estable","Informacional","TOFU",4,"/cafe-de-especialidad/",4,4,4,2,3.6,2],
+[3,0,"café de especialidad online","Secundaria","Autocompletado",720,30,"1,10","Creciente","Transaccional","BOFU",5,"/cafe-de-especialidad/",3,3,5,5,4.0,1],
+[4,0,"mejor café de especialidad","Secundaria","Otras preguntas / AlsoAsked",480,35,"0,90","Estable","Comercial","MOFU",5,"/cafe-de-especialidad/",3,3,5,4,3.8,2],
+[5,0,"café de especialidad suscripción","Secundaria","Ubersuggest",260,18,"1,40","Creciente","Transaccional","BOFU",5,"/cafe-de-especialidad/",3,4,5,5,4.25,1],
+[6,0,"café de especialidad calidad precio","Secundaria","Foro / redes / reseñas",210,15,"0,60","Estable","Comercial","MOFU",5,"/cafe-de-especialidad/",3,4,5,4,4.05,1],
+[7,0,"por qué mi café sabe ácido","Secundaria","Answer the Public",90,6,"0,10","Estable","Informacional","TOFU",4,"/cafe-de-especialidad/",2,5,4,2,3.35,2],
+[8,1,"comprar café en grano online","Principal","Búsquedas relacionadas",720,28,"1,20","Creciente","Transaccional","BOFU",5,"/cafe-en-grano/",3,4,5,5,4.25,1],
+[9,1,"café en grano natural","Secundaria","Autocompletado",1900,32,"0,95","Estable","Transaccional","BOFU",5,"/cafe-en-grano/",4,3,5,5,4.25,1],
+[10,1,"mejor café en grano para cafetera superautomática","Secundaria","Ubersuggest",1000,26,"0,80","Creciente","Comercial","MOFU",5,"/cafe-en-grano/",4,4,5,4,4.3,1],
+[11,1,"café en grano descafeinado","Secundaria","Autocompletado",880,22,"0,75","Estable","Transaccional","BOFU",4,"/cafe-en-grano/",3,4,4,5,3.95,2],
+[12,1,"café molido para cafetera italiana","Secundaria","Ubersuggest",480,20,"0,70","Estable","Transaccional","BOFU",5,"/cafe-en-grano/",3,4,5,5,4.25,1],
+[13,1,"cómo conservar café en grano","Secundaria","Otras preguntas / AlsoAsked",260,8,"0,10","Estable","Informacional","TOFU",3,"/cafe-en-grano/",3,5,3,2,3.3,2],
+[14,1,"café en grano mercadona","Secundaria","Autocompletado",2400,20,"0,30","Estable","Navegacional","BOFU",1,"—",4,4,1,1,2.5,"Descartar"],
+[15,2,"cómo hacer café en cafetera italiana","Principal","Autocompletado",2900,22,"0,20","Estable","Informacional","TOFU",3,"/blog/como-hacer-cafe-cafetera-italiana/",4,4,3,2,3.3,2],
+[16,2,"cuánto café se pone en una cafetera italiana","Secundaria","Otras preguntas / AlsoAsked",1000,10,"0,10","Estable","Informacional","TOFU",3,"/blog/como-hacer-cafe-cafetera-italiana/",4,5,3,2,3.55,2],
+[17,2,"mejor café para cafetera italiana","Secundaria","Otras preguntas / AlsoAsked",590,18,"0,60","Estable","Comercial","MOFU",5,"/blog/como-hacer-cafe-cafetera-italiana/",3,4,5,4,4.05,1],
+[18,2,"cafetera italiana se sale el café","Secundaria","Foro / redes / reseñas",70,5,"0,10","Estable","Informacional","TOFU",3,"/blog/como-hacer-cafe-cafetera-italiana/",2,5,3,2,3.05,2],
+[19,3,"molinillo de café manual","Principal","Autocompletado",2600,30,"0,65","Estable","Comercial","MOFU",4,"/molinillos-de-cafe/",4,3,4,4,3.75,2],
+[20,3,"molinillo de café eléctrico","Secundaria","Autocompletado",4400,40,"0,70","Estable","Comercial","MOFU",4,"/molinillos-de-cafe/",4,3,4,4,3.75,2],
+[21,3,"mejor molinillo de café calidad precio","Secundaria","Ubersuggest",720,28,"0,60","Estable","Comercial","MOFU",4,"/molinillos-de-cafe/",3,4,4,4,3.75,2],
+[22,3,"cómo moler café para espresso","Secundaria","Answer the Public",170,9,"0,10","Estable","Informacional","TOFU",3,"/molinillos-de-cafe/",2,5,3,2,3.05,2],
+[23,4,"cata de café alicante","Principal","Semilla",90,5,"0,90","Creciente","Transaccional","BOFU",5,"/catas-de-cafe-alicante/",2,5,5,5,4.25,1],
+[24,4,"curso de barista alicante","Secundaria","Otras preguntas / AlsoAsked",170,10,"1,30","Estable","Transaccional","BOFU",4,"/catas-de-cafe-alicante/",2,5,4,5,3.95,2],
+[25,4,"curso latte art alicante","Secundaria","Búsquedas relacionadas",30,5,"0,70","Estable","Transaccional","BOFU",4,"/catas-de-cafe-alicante/",1,5,4,5,3.7,2],
+[26,4,"cafetería de especialidad benidorm","Secundaria","Foro / redes / reseñas",320,12,"0,40","Estacional","Mixta","BOFU",3,"/catas-de-cafe-alicante/",3,5,3,3,3.5,2],
+[27,0,"regalos para amantes del café","Secundaria","Google Trends",1600,25,"0,80","Estacional","Comercial","MOFU",4,"/regalos-cafeteros/",4,4,4,4,4.0,1]
+];
+const K = {};
+RAW.forEach(a => { K[a[0]] = {id:a[0], cl:CL[a[1]], kw:a[2], rol:a[3], fu:a[4], vol:a[5], kd:a[6], cpc:a[7], tend:a[8], int:a[9], fase:a[10], rel:a[11], url:a[12], D:a[13], F:a[14], R:a[15], I:a[16], T:a[17], U:a[18]}; });
+// Filas que aparecen en cada paso (índice = paso)
+const ADD = [[],[1,23],[3,9,11,14,15,19,20],[2,4,13,16,17,24],[8,25,7,22],[5,10,12,21],[6,18,26,27],[],[],[],[],[]];
+const MC = ["#4dd9c0","#f2a154","#a78bfa","#7cd992","#e2725b","#60a5fa"];
+
+function fmt(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+function chip(t, st, m, why){
+  const ico = st==="ok" ? "✔" : st==="no" ? "✘" : "›";
+  return `<div class="sug ${st}" data-m="${m}"><span class="ico">${ico}</span><span class="txt">${t}</span>${why?`<em>${why}</em>`:""}</div>`;
+}
+function acq(q, items){ return `<div class="acq"><div class="q">Escribes <b>${q}</b></div>${items.join("")}</div>`; }
+</script>
+<!--PART3-->
+<script>
+const STEPS_A = [
+{ ph:0, t:"La ficha del proyecto", label:"Hoja Proyecto",
+  intro:"Antes de buscar nada, la hoja Proyecto fija el filtro: qué vende el cliente, a quién, en qué zona y con qué herramienta se miden las cifras.",
+  marks:[
+    {tag:"Empresa y qué vende", why:"Es el filtro principal: si no lo vende, la keyword no entra."},
+    {tag:"Público objetivo", why:"Decide el lenguaje: hablan de «calidad precio», no de «perfil de tueste»."},
+    {tag:"Zona", why:"Las keywords locales solo valen para Benidorm y Alicante."},
+    {tag:"Herramienta, país y fecha", why:"Todas las cifras salen de la misma herramienta, así son comparables. Los datos caducan."}
+  ],
+  src:()=>`<div class="form">
+    <div class="f" data-m="1"><span>Empresa cliente</span><b>Café Alba</b></div>
+    <div class="f" data-m="1"><span>Qué vende</span><b>Café de especialidad en grano y molido, molinillos, cafeteras, catas y cursos</b></div>
+    <div class="f" data-m="2"><span>Público objetivo</span><b>Adultos 25-55 aficionados al café; turistas y residentes de la Marina Baixa</b></div>
+    <div class="f" data-m="3"><span>Zona</span><b>Online en toda España · catas en Benidorm y Alicante</b></div>
+    <div class="f" data-m="4"><span>Herramienta de volumen y KD</span><b>Ubersuggest (versión gratuita)</b></div>
+    <div class="f" data-m="4"><span>País, idioma y fecha</span><b>España · español · octubre 2026</b></div>
+  </div>`,
+  note:"Rellena la ficha antes de buscar: cada decisión de los pasos siguientes se mide contra ella.",
+  sm:{}
+},
+{ ph:1, t:"Las semillas", label:"Semillas",
+  intro:"Una semilla es una expresión corta (1 a 3 palabras) dicha como la diría el cliente. No es la keyword final: sirve para pedir ideas a las herramientas.",
+  marks:[
+    {tag:"Se queda como keyword", why:"Fuente = Semilla. Ya tiene intención clara: «café de especialidad» y «cata de café alicante»."},
+    {tag:"Solo sirve para buscar", why:"Demasiado genéricas o de intención mixta. Entran sus variantes concretas."},
+    {tag:"Error común", why:"Demasiado amplia («café», de todo el mundo y de ningún negocio) o demasiado concreta («café etiopía yirgacheffe lavado 250 g»)."}
+  ],
+  src:()=>`<ul class="seeds">
+    <li class="ok" data-m="1"><code>café de especialidad</code><span>Keyword: entra en la hoja</span></li>
+    <li class="ok" data-m="1"><code>cata de café alicante</code><span>Keyword: entra en la hoja</span></li>
+    <li data-m="2"><code>café en grano</code><span>Solo para buscar: demasiado genérica</span></li>
+    <li data-m="2"><code>cafetera italiana</code><span>Solo para buscar: no es su foco</span></li>
+    <li data-m="2"><code>molinillo de café</code><span>Solo para buscar: entran sus variantes</span></li>
+  </ul>
+  <div class="warn" data-m="3"><b>⚠️ Error común:</b> usar «café» como semilla, o una frase tan concreta que no da ideas.</div>`,
+  note:"Dos semillas pasan a la hoja. Las otras tres se quedan como término de búsqueda.",
+  sm:{}
+},
+{ ph:2, t:"Autocompletado de Google", label:"Google · autocompletado (en incógnito)",
+  intro:"Escribes la semilla sin pulsar Intro y lees las sugerencias. Cada una se pregunta: ¿lo vende Café Alba, está en su zona, lo buscaría su cliente?",
+  marks:[
+    {tag:"Se queda", why:"Sugerencias que pasan el filtro. Se apuntan con su fuente."},
+    {tag:"Se descarta", why:"Otra tienda, otra marca, compra por precio o fuera de zona. Se anota el motivo."},
+    {tag:"Truco", why:"Añade un espacio y una letra para ver más sugerencias."}
+  ],
+  src:()=>`
+    ${acq("café de especialidad", [
+      chip("café de especialidad online","ok",1,"de «comprar online»"),
+      chip("café de especialidad valencia","no",2,"fuera de zona"),
+      chip("café de especialidad amazon","no",2,"otra tienda")])}
+    ${acq("café en grano <span style='color:#f2a154'>␣</span>", [
+      chip("café en grano natural","ok",1),
+      chip("café en grano descafeinado","ok",1),
+      chip("café en grano mercadona","ok",1,"se apunta a propósito: se descarta en el paso 8"),
+      chip("café en grano lidl","no",2,"otra marca"),
+      chip("café en grano 1 kg precio","no",2,"compra por precio")])}
+    ${acq("cafetera italiana", [
+      chip("cómo hacer café en cafetera italiana","ok",1,"de «como usar»"),
+      chip("cafetera italiana bialetti","no",2,"busca comprar la cafetera")])}
+    ${acq("molinillo de café", [
+      chip("molinillo de café manual","ok",1),
+      chip("molinillo de café eléctrico","ok",1),
+      chip("molinillo de café amazon","no",2,"otra tienda")])}
+    <div class="tip" data-m="3">Escribe la semilla <b>sin pulsar Intro</b>, añade un espacio y una letra («café en grano a», «…b»…). Así salen más sugerencias.</div>`,
+  note:"Cuatro búsquedas en Google. El filtro se pregunta en voz alta con cada sugerencia.",
+  sm:{"Fuente":1}
+},
+{ ph:2, t:"«Más preguntas» y AlsoAsked", label:"Google · «Más preguntas» y AlsoAsked",
+  intro:"Pulsa Intro y despliega «Más preguntas». Las preguntas reales se convierten en keywords; las que son secciones de una página pasan a su índice.",
+  marks:[
+    {tag:"Se queda", why:"Preguntas que buscaría un cliente con intención de aprender o comprar."},
+    {tag:"Sección, no fila", why:"Diferencias o tipos van como apartados de la página pilar, o descartadas por no aportar al negocio."},
+    {tag:"Formato", why:"Se escriben como las buscaría la gente: minúsculas y sin signos de interrogación."}
+  ],
+  src:()=>`
+    ${acq("café de especialidad <span style='color:#8b96a3'>(Intro)</span>", [
+      chip("qué es el café de especialidad","ok",1),
+      chip("mejor café de especialidad","ok",1),
+      chip("diferencia con el café normal","sec",2,"sección de la página pilar")])}
+    ${acq("cata de café alicante <span style='color:#8b96a3'>(Intro)</span>", [
+      chip("curso de barista alicante","ok",1),
+      chip("marca de café más vendida en España","no",2,"no aporta al negocio"),
+      chip("qué se hace en una cata de café","sec",2,"sección de la página de catas")])}
+    ${acq("café en grano", [
+      chip("cómo conservar café en grano","ok",1),
+      chip("cuánto dura el café en grano","no",2,"misma intención")])}
+    ${acq("cafetera italiana", [
+      chip("cuánto café se pone en una cafetera italiana","ok",1),
+      chip("mejor café para cafetera italiana","ok",1)])}
+    <div class="tip" data-m="3">Las preguntas se escriben en minúsculas y sin signos: «qué es el café de especialidad».</div>`,
+  note:"Las preguntas se escriben tal como las buscaría la gente. Las secciones van a la página pilar.",
+  sm:{"Fuente":1}
+},
+{ ph:2, t:"Búsquedas relacionadas y Answer the Public", label:"Google · relacionadas · Answer the Public",
+  intro:"Las búsquedas relacionadas salen al final de la primera página. Answer the Public muestra la rueda de preguntas de una palabra amplia.",
+  marks:[
+    {tag:"Se queda", why:"Búsquedas reales de un usuario con intención clara."},
+    {tag:"Se descarta o se apunta", why:"Otra tienda o salud sin venta: fuera. Un competidor se apunta para la A4."},
+    {tag:"Por qué «café»", why:"Aquí sí usamos un término amplio: la herramienta da muchas ideas y nosotros filtramos después."}
+  ],
+  src:()=>`
+    <div class="block-title">Otras personas también buscan</div>
+    ${acq("café de especialidad y cata de café alicante", [
+      chip("comprar café en grano online","ok",1,"de «café de especialidad»"),
+      chip("curso latte art alicante","ok",1,"de «cata de café alicante»"),
+      chip("Fancoffee Alicante","no",2,"competidor: apúntalo para la A4"),
+      chip("Curso Barista gratis Alicante","no",2,"no es su servicio")])}
+    <div class="block-title">Answer the Public · «café»</div>
+    ${acq("café", [
+      chip("por qué mi café sabe ácido","ok",1),
+      chip("cómo moler café para espresso","ok",1),
+      chip("por qué el café da sueño","no",2,"salud: no vende nada")])}
+    <div class="tip" data-m="3">Aquí sí usamos «café» como entrada: la herramienta funciona mejor con términos amplios, y nosotros filtramos después.</div>`,
+  note:"Relacionadas y Answer the Public aportan dos keywords cada una.",
+  sm:{"Fuente":1}
+},
+{ ph:2, t:"Ubersuggest: volumen, CPC y dificultad", label:"Ubersuggest · Ideas de palabras clave · España",
+  intro:"Una sola búsqueda da volumen, CPC y dificultad SEO de muchas ideas. Es lo que se usa para todas las cifras de la hoja.",
+  marks:[
+    {tag:"Se queda", why:"Ideas con volumen y intención que encaja con el negocio."},
+    {tag:"Se descarta", why:"Fuera de zona o compite en precio con supermercados."},
+    {tag:"Por qué Ubersuggest", why:"Una búsqueda, muchas métricas: importante con el límite diario de la versión gratuita."}
+  ],
+  src:()=>`<table class="ub">
+    <tr><th>Keyword</th><th>Volumen</th><th>CPC (€)</th><th>KD</th></tr>
+    <tr><td data-m="1">café de especialidad suscripción</td><td>260</td><td>1,40</td><td>18</td></tr>
+    <tr><td data-m="1">mejor café en grano para cafetera superautomática</td><td>1.000</td><td>0,80</td><td>26</td></tr>
+    <tr><td data-m="1">café molido para cafetera italiana</td><td>480</td><td>0,70</td><td>20</td></tr>
+    <tr><td data-m="1">mejor molinillo de café calidad precio</td><td>720</td><td>0,60</td><td>28</td></tr>
+    <tr class="dim"><td data-m="2">café de especialidad barcelona</td><td colspan="3">✘ fuera de zona</td></tr>
+    <tr class="dim"><td data-m="2">café en grano 1 kg oferta</td><td colspan="3">✘ compite en precio</td></tr>
+    <tr class="dim"><td data-m="2">molinillo de café eléctrico amazon</td><td colspan="3">✘ navegacional de otra tienda</td></tr>
+  </table>
+  <div class="tip" data-m="3">Las descartadas se anotan también: así nadie repite la búsqueda ni se pregunta después por qué no están.</div>`,
+  note:"Cuatro keywords con métricas. Las descartadas quedan documentadas con su motivo.",
+  sm:{"Volumen":1,"KD":1}
+}
+];
+</script>
+<!--PART4-->
+<script>
+const STEPS_B = [
+{ ph:2, t:"Voz del cliente y Google Trends", label:"Foro, reseñas y Google Trends",
+  intro:"La forma en que habla la gente es lenguaje real para la hoja. Trends no da volumen: solo muestra si una búsqueda sube, baja o es estacional.",
+  marks:[
+    {tag:"Lenguaje del cliente", why:"Hilos de foros, Reddit y reseñas: cómo escribe la gente, no los títulos."},
+    {tag:"Trends: forma, no volumen", why:"Sirve para la columna Tendencia: creciente, estable, decreciente o estacional."},
+    {tag:"Volumen cero no es descarte", why:"Estas keywords pueden salir con volumen bajo en Ubersuggest. Se quedan igual: es lenguaje real."}
+  ],
+  src:()=>`
+    <div class="quote" data-m="1"><em>«Relación calidad/precio… me parece un poco caro»</em><span>Reddit · r/askspain → <b>café de especialidad calidad precio</b></span></div>
+    <div class="quote" data-m="1"><em>«La cafetera italiana se sale por los lados»</em><span>Foro → <b>cafetera italiana se sale el café</b></span></div>
+    <div class="quote" data-m="1"><em>«La mejor cafetería de especialidad de Benidorm»</em><span>Reseña de Google Maps → <b>cafetería de especialidad benidorm</b></span></div>
+    <div class="trends" data-m="2"><b>Google Trends · España · 5 años</b>
+      <div>café de especialidad: sube · café en grano: estable · cata de café: picos</div>
+      <div>Consulta relacionada: <b>regalos para amantes del café</b> → estacional (picos en diciembre)</div>
+    </div>
+    <div class="tip" data-m="3">Estas keywords pueden salir con volumen bajo o cero en Ubersuggest: se quedan igual, porque sirven para el texto de las páginas.</div>`,
+  note:"Foro, reseñas y Trends: lenguaje real del cliente y estacionalidad.",
+  sm:{"Fuente":1}
+},
+{ ph:3, t:"El filtro y el descarte", label:"Filtro de decisión",
+  intro:"Antes de dar por cerradas las 27 filas, cada keyword pasa tres preguntas. Un descarte bien documentado vale tanto como una keyword nueva.",
+  marks:[
+    {tag:"¿Lo vende Café Alba?", why:"Si no lo vende, fuera."},
+    {tag:"¿Está en su zona?", why:"Benidorm y Alicante para las catas; España para el online."},
+    {tag:"¿Intención que podemos ofrecer?", why:"Aprender, comparar o comprar algo que vendemos."},
+    {tag:"Descarte documentado", why:"Estado = Descartada, relevancia 1 y el motivo en Observaciones."}
+  ],
+  src:()=>`
+    <div class="qbox" data-m="1"><b>¿Lo vende Café Alba?</b><span>Si no, fuera.</span></div>
+    <div class="qbox" data-m="2"><b>¿Está en su zona?</b><span>Benidorm y Alicante para las catas; España para el online.</span></div>
+    <div class="qbox" data-m="3"><b>¿Lo buscaría su cliente con una intención que podamos ofrecer?</b><span>Aprender, comparar o comprar algo que vendemos.</span></div>
+    <div class="ex" data-m="4">
+      <div>✘ <b>café de especialidad barcelona</b>: fuera de zona.</div>
+      <div>✘ <b>café en grano mercadona</b>: la vende Mercadona, no Café Alba. Relevancia 1 → <b>Descartada</b> con motivo en Observaciones.</div>
+    </div>
+    <div class="count">27 keywords en la hoja · 26 activas · 1 descartada</div>`,
+  note:"Filtro en tres preguntas. Lo descartado se queda en la hoja con su motivo.",
+  sm:{"Estado":4}
+},
+{ ph:3, t:"Métricas y puntuación", label:"Métricas de la hoja",
+  intro:"Cada keyword recibe sus métricas de fuentes fijas. La puntuación resume demanda, facilidad, relevancia e intención, y de ella sale la prioridad.",
+  marks:[
+    {tag:"Volumen", why:"Ubersuggest, España. Nunca otra herramienta a mitad de la hoja."},
+    {tag:"KD (dificultad SEO)", why:"Ubersuggest · Dificultad SEO. Nunca la columna Competencia del Planificador."},
+    {tag:"Intención", why:"Busca en incógnito y mira el top 10: guías = informacional, comparativas = comercial, tiendas = transaccional."},
+    {tag:"Relevancia", why:"5 es lo que vende la empresa. 1 se descarta aunque la puntuación sea buena."},
+    {tag:"Puntuación y prioridad", why:"Prioridad 1 si la puntuación es ≥ 4; 2 si es ≥ 3; 3 si es menor. Los pesos están en la hoja Escalas."},
+    {tag:"Trampa del Planificador", why:"Alta/Media/Baja en Google Ads = cuántos anunciantes pujan. No es dificultad orgánica."}
+  ],
+  src:()=>`<table class="met">
+    <tr><th>Keyword</th><th data-m="1">Volumen</th><th data-m="2">KD</th><th data-m="3">Intención</th><th data-m="4">Relevancia</th><th>Tendencia</th><th>Fase</th></tr>
+    <tr><td>café de especialidad</td><td>5.400</td><td>45</td><td>Comercial</td><td>5</td><td>Creciente</td><td>MOFU</td></tr>
+    <tr><td>comprar café en grano online</td><td>720</td><td>28</td><td>Transaccional</td><td>5</td><td>Creciente</td><td>BOFU</td></tr>
+    <tr><td>cómo hacer café en cafetera italiana</td><td>2.900</td><td>22</td><td>Informacional</td><td>3</td><td>Estable</td><td>TOFU</td></tr>
+    <tr><td>molinillo de café manual</td><td>2.600</td><td>30</td><td>Comercial</td><td>4</td><td>Estable</td><td>MOFU</td></tr>
+    <tr><td>cata de café alicante</td><td>90</td><td>5</td><td>Transaccional</td><td>5</td><td>Creciente</td><td>BOFU</td></tr>
+    <tr><td>café en grano mercadona</td><td>2.400</td><td>20</td><td>Navegacional</td><td>1</td><td>Estable</td><td>BOFU</td></tr>
+  </table>
+  <div class="formula" data-m="5">Puntuación = D × peso + F × peso + R × peso + I × peso<br>(cada componente de 1 a 5; pesos en «Escalas»)<br>Prioridad 1 si ≥ 4 · 2 si ≥ 3 · 3 si &lt; 3 · Relevancia 1 = Descartar</div>
+  <div class="trap" data-m="6">Competencia del Planificador de palabras clave (Google Ads): Alta, Media o Baja indica cuántos anunciantes pujan. No es la dificultad SEO.</div>`,
+  note:"Las métricas vienen de herramientas fijas: así las cifras son comparables entre alumnos.",
+  sm:{"Volumen":1,"KD":2,"Intención":3,"Relevancia":4,"Puntuación":5,"Prioridad":5}
+},
+{ ph:4, t:"Clusters y URL objetivo", label:"Mapa de clusters",
+  intro:"Las keywords se agrupan por tema: las que una misma página puede responder. En cada cluster, una principal y una URL.",
+  marks:[
+    {tag:"Agrupa por tema", why:"Qué keywords responderían bien en la misma página."},
+    {tag:"La principal manda", why:"La de mayor volumen cuya intención encaja con la página que vas a crear. El resto son secundarias."},
+    {tag:"Una URL por cluster", why:"Según la intención: categoría, guía o landing local."}
+  ],
+  src:()=>`<div class="cards">
+    <div class="cl"><div class="clname" data-m="1">Café de especialidad</div><div class="kv">Principal<b data-m="2">café de especialidad</b></div><div class="kv">URL objetivo<b data-m="3">/cafe-de-especialidad/</b></div><div class="small">7 secundarias</div></div>
+    <div class="cl"><div class="clname" data-m="1">Café en grano y molido</div><div class="kv">Principal<b data-m="2">comprar café en grano online</b></div><div class="kv">URL objetivo<b data-m="3">/cafe-en-grano/</b></div><div class="small">5 secundarias · 1 descartada</div></div>
+    <div class="cl"><div class="clname" data-m="1">Cafetera italiana</div><div class="kv">Principal<b data-m="2">cómo hacer café en cafetera italiana</b></div><div class="kv">URL objetivo<b data-m="3">/blog/como-hacer-cafe-cafetera-italiana/</b></div><div class="small">3 secundarias</div></div>
+    <div class="cl"><div class="clname" data-m="1">Molinillos</div><div class="kv">Principal<b data-m="2">molinillo de café manual</b></div><div class="kv">URL objetivo<b data-m="3">/molinillos-de-cafe/</b></div><div class="small">3 secundarias</div></div>
+    <div class="cl"><div class="clname" data-m="1">Catas y cursos (local)</div><div class="kv">Principal<b data-m="2">cata de café alicante</b></div><div class="kv">URL objetivo<b data-m="3">/catas-de-cafe-alicante/</b></div><div class="small">3 secundarias</div></div>
+  </div>`,
+  note:"Cinco clusters, una página por cluster. La principal manda la URL.",
+  sm:{"Cluster":1,"URL objetivo":3}
+},
+{ ph:4, t:"Test de solapamiento SERP", label:"Test de solapamiento · top 10 orgánico",
+  intro:"Antes de crear una página nueva, se comprueba si dos keywords comparten la misma SERP. Si comparten casi todo el top 10, van en la misma página.",
+  marks:[
+    {tag:"Cuenta las URL comunes", why:"Compara el top 10 orgánico de las dos búsquedas."},
+    {tag:"Decisión", why:"7 comunes → misma página. 2 comunes → páginas distintas."},
+    {tag:"DEMO", why:"Las URLs son ilustrativas: en vuestra práctica salen de la búsqueda real con fecha."}
+  ],
+  src:()=>`
+    <div class="pair">
+      <div class="ph">Par 1 · <b>comprar café en grano online</b> vs <b>café en grano natural</b></div>
+      <div data-m="1">7 de 10 URLs en común</div>
+      <ul class="urls"><li>tostadores-sur.com/cafe-en-grano</li><li>cafeteria-norte.es/tienda</li><li>amazon.es/cafe-grano</li><li>elcorteingles.es/cafe</li><li>cafesdelmundo.es/grano</li><li>carrefour.es/cafe-grano</li><li>tostaderoartesano.es</li></ul>
+      <span class="dec ok" data-m="2">Misma página</span>
+    </div>
+    <div class="pair">
+      <div class="ph">Par 2 · <b>cómo hacer café en cafetera italiana</b> vs <b>café molido para cafetera italiana</b></div>
+      <div>2 de 10 URLs en común</div>
+      <ul class="urls"><li>blogdelcafe.net/cafetera-italiana</li><li>bialetti.com/guia</li></ul>
+      <span class="dec no" data-m="2">Páginas distintas</span>
+    </div>
+    <div class="small" data-m="3" style="padding:4px 6px">DEMO: URLs ilustrativas.</div>`,
+  note:"Antes de crear una página nueva, comprueba si dos keywords comparten la misma SERP.",
+  sm:{}
+},
+{ ph:4, t:"Resultado final", label:"Resumen",
+  intro:"La hoja queda con 27 filas, 7 fuentes, 5 clusters y un descarte documentado. Lo que se evalúa es el proceso que lleva a cada decisión.",
+  marks:[
+    {tag:"Fuentes", why:"7 fuentes distintas además de las semillas (se piden al menos 4)."},
+    {tag:"27 filas", why:"Incluyen las 2 semillas y las keywords de las 7 fuentes."},
+    {tag:"5 clusters", why:"Cada uno con su principal, su URL y sus secundarias."},
+    {tag:"Prioridades", why:"11 de prioridad 1, 15 de prioridad 2 y 1 descartada."}
+  ],
+  src:()=>`
+    <table>
+      <tr><th>Fuente</th><th>Keywords</th></tr>
+      <tr><td>Semilla</td><td>2</td></tr>
+      <tr><td>Autocompletado</td><td>7</td></tr>
+      <tr><td>Otras preguntas / AlsoAsked</td><td>6</td></tr>
+      <tr><td>Búsquedas relacionadas</td><td>2</td></tr>
+      <tr><td>Answer the Public</td><td>2</td></tr>
+      <tr><td>Ubersuggest</td><td>4</td></tr>
+      <tr><td>Foro / redes / reseñas</td><td>3</td></tr>
+      <tr><td>Google Trends</td><td>1</td></tr>
+    </table>
+    <div class="tiles">
+      <div class="tile" data-m="1"><b>7</b><span>fuentes distintas</span></div>
+      <div class="tile" data-m="2"><b>27</b><span>keywords en total</span></div>
+      <div class="tile" data-m="3"><b>5</b><span>clusters</span></div>
+      <div class="tile" data-m="4"><b>11 · 15 · 1</b><span>prioridad 1 · prioridad 2 · descartada</span></div>
+    </div>`,
+  note:"27 keywords, 7 fuentes y 5 clusters. La hoja queda lista para la A4 y la A5.",
+  sm:{}
+}
+];
+const STEPS = [...STEPS_A, ...STEPS_B];
+</script>
+<!--PART5-->
+<script>
+const $ = s => document.querySelector(s);
+let cur = 0, playing = false, timer = null;
+const DELAY = {lenta:4500, normal:3000, rapida:1800};
+const PLAY_SVG = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>';
+const PAUSE_SVG = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2h3v12H4zM9 2h3v12H9z"/></svg>';
+
+// Estado de cada fila en la hoja según el paso
+function estado(k, step){
+  if (step >= 8) return k.U === "Descartar" ? "Descartar" : "P" + k.U;
+  if (k.id === 14 && step >= 7) return "Descartada";
+  return "Pendiente";
+}
+function cols(step){
+  const c = [{h:"ID"},{h:"Keyword"}];
+  if (step >= 9) c.push({h:"Cluster"},{h:"URL objetivo"});
+  c.push({h:"Fuente"},{h:"Volumen"},{h:"KD"},{h:"Intención"});
+  if (step >= 8) c.push({h:"D"},{h:"F"},{h:"Relevancia"},{h:"I"},{h:"Puntuación"},{h:"Prioridad"});
+  else c.push({h:"Relevancia"},{h:"Estado"});
+  return c;
+}
+function cellVal(k, h, step){
+  switch(h){
+    case "ID": return k.id;
+    case "Keyword": return (k.rol === "Principal" ? "★ " : "") + k.kw;
+    case "Cluster": return k.cl;
+    case "URL objetivo": return k.url;
+    case "Fuente": return k.fu;
+    case "Volumen": return fmt(k.vol);
+    case "KD": return k.kd;
+    case "Intención": return k.int;
+    case "Relevancia": return k.rel;
+    case "D": return k.D;
+    case "F": return k.F;
+    case "I": return k.I;
+    case "Puntuación": return String(k.T.toFixed(2)).replace(".", ",");
+    case "Prioridad": return k.U === "Descartar" ? "Descartar" : "P" + k.U;
+    case "Estado": return estado(k, step);
+  }
+  return "";
+}
+function renderSheet(step){
+  const el = $("#sheet");
+  const added = new Set();
+  for (let i = 0; i <= step; i++) STEPS[i] && ADD[i].forEach(id => added.add(id));
+  const fresh = new Set(ADD[step] || []);
+  const sm = STEPS[step].sm || {};
+  const headers = cols(step);
+  const th = headers.map(c => {
+    const m = sm[c.h] ? ` data-m="${sm[c.h]}"` : "";
+    return `<th${m}>${c.h}</th>`;
+  }).join("");
+  const ids = [...added].sort((a,b) => a-b);
+  if (!ids.length) {
+    el.innerHTML = `<table><tr>${th}</tr></table><div class="empty">Hoja vacía: solo la cabecera.</div>`;
+    return;
+  }
+  const rows = ids.map(id => {
+    const k = K[id];
+    const cls = fresh.has(id) ? "new" : (id === 14 && step === 7 ? "mod" : "");
+    return `<tr class="${cls}">` + headers.map(c => `<td>${cellVal(k, c.h, step)}</td>`).join("") + `</tr>`;
+  }).join("");
+  el.innerHTML = `<table><tr>${th}</tr>${rows}</table>`;
+}
+
+function hl(n, on){
+  document.querySelectorAll(`[data-m="${n}"]`).forEach(e => e.classList.toggle("hl", on));
+}
+
+function render(){
+  const S = STEPS[cur];
+  $("#phaseName").textContent = PHASES[S.ph] + " · paso " + (cur + 1);
+  $("#stepTitle").textContent = S.t;
+  $("#stepIntro").textContent = S.intro;
+  $("#marks").innerHTML = S.marks.map((m, i) =>
+    `<div class="row" tabindex="0" style="--cc:${MC[i]}" data-n="${i+1}"><span class="n">${i+1}</span><span class="tag">${m.tag}</span><span class="why">${m.why}</span></div>`
+  ).join("");
+  document.querySelectorAll("#marks .row").forEach(r => {
+    const n = r.dataset.n;
+    r.addEventListener("mouseenter", () => hl(n, true));
+    r.addEventListener("mouseleave", () => hl(n, false));
+    r.addEventListener("focus", () => hl(n, true));
+    r.addEventListener("blur", () => hl(n, false));
+  });
+  $("#srcLabel").textContent = S.label;
+  $("#src").innerHTML = S.src();
+  renderSheet(cur);
+  $("#noteBox").textContent = S.note;
+  $("#verdict").classList.toggle("show", cur === STEPS.length - 1);
+  $("#counter").textContent = `Paso ${cur + 1} / ${STEPS.length}`;
+  $("#tfill").style.width = (cur / (STEPS.length - 1) * 100) + "%";
+  document.querySelectorAll(".dot").forEach(d => {
+    const i = +d.dataset.i;
+    d.className = "dot" + (i === cur ? " on" : i < cur ? " done" : "");
+  });
+  document.querySelectorAll(".phase").forEach(p => p.classList.toggle("on", +p.dataset.p === S.ph));
+}
+
+function go(i){
+  cur = Math.max(0, Math.min(STEPS.length - 1, i));
+  render();
+}
+
+function play(on){
+  playing = on;
+  $("#bPlay").innerHTML = on ? PAUSE_SVG : PLAY_SVG;
+  $("#bPlay").setAttribute("aria-label", on ? "Pausar" : "Reproducir");
+  clearInterval(timer);
+  if (on) {
+    timer = setInterval(() => {
+      if (cur >= STEPS.length - 1) { play(false); return; }
+      go(cur + 1);
+    }, DELAY[$("#speed").value]);
+  }
+}
+
+function buildPhases(){
+  const track = $("#phases");
+  PHASES.forEach((name, p) => {
+    const div = document.createElement("div");
+    div.className = "phase";
+    div.dataset.p = p;
+    div.innerHTML = `<span class="phase-name">${name}</span><span class="dots"></span>`;
+    const dots = div.querySelector(".dots");
+    STEPS.forEach((s, i) => {
+      if (s.ph !== p) return;
+      const b = document.createElement("button");
+      b.className = "dot";
+      b.dataset.i = i;
+      b.title = s.t;
+      b.setAttribute("aria-label", s.t);
+      b.addEventListener("click", () => { play(false); go(i); });
+      dots.appendChild(b);
+    });
+    track.appendChild(div);
+  });
+}
+
+buildPhases();
+$("#bNext").addEventListener("click", () => go(cur + 1));
+$("#bPrev").addEventListener("click", () => go(cur - 1));
+$("#bRestart").addEventListener("click", () => { play(false); go(0); });
+$("#bPlay").addEventListener("click", () => play(!playing));
+$("#speed").addEventListener("change", () => { if (playing) play(true); });
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "SELECT") return;
+  if (e.key === "ArrowRight") go(cur + 1);
+  else if (e.key === "ArrowLeft") go(cur - 1);
+  else if (e.key === " ") { e.preventDefault(); play(!playing); }
+  else if (e.key === "r" || e.key === "R") { play(false); go(0); }
+});
+$("#verdict").innerHTML = "Lo que se evalúa es <b>el criterio</b>: qué entra, qué se descarta y por qué. Las cifras son ilustrativas; en tu práctica deben salir de la herramienta indicada y con fecha de consulta.";
+render();
+</script>
+</body>
+</html>

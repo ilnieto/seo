@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Long tail: cuestión de volumen, no de palabras</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+
+:root{
+  --bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;--ink:#ffffff;--muted:#f0f3f6;
+  --accent:#4dd9c0;--accent-2:#f2a154;--violet:#a78bfa;--good:#7cd992;--danger:#e2725b;
+  --accent-dim:rgba(77,217,192,.12);--accent2-dim:rgba(242,161,84,.12);--violet-dim:rgba(167,139,250,.12);--danger-dim:rgba(226,114,91,.12);
+}
+*{box-sizing:border-box;}
+html,body{background:var(--bg);}
+body{margin:0;color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;padding:44px 20px 140px;}
+.wrap{max-width:1080px;margin:0 auto;}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px;}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:clamp(20px,4.2vw,29px);font-weight:600;margin:0 0 10px;text-wrap:balance;}
+.sub{text-align:center;color:var(--muted);font-size:14px;max-width:680px;margin:0 auto 30px;line-height:1.55;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;}
+.lbl{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:9px;}
+.note{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:center;min-height:34px;line-height:1.5;padding:0 10px;margin-top:18px;}
+.timeline{max-width:1080px;margin:20px auto 0;height:3px;background:var(--line);border-radius:2px;overflow:hidden;}
+.timeline-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .05s linear;}
+.verdict{text-align:center;margin:20px auto 0;max-width:720px;font-size:14px;color:var(--muted);line-height:1.6;min-height:30px;opacity:0;transition:opacity .4s;}
+.verdict.show{opacity:1;}
+.verdict b{color:var(--ink);font-weight:600;}
+.controls{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);width:calc(100% - 32px);max-width:1080px;margin:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px 20px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,.5);}
+.ctrl-group{display:flex;align-items:center;gap:8px;}
+.ctrl-btn{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.03em;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s;}
+.ctrl-btn:hover:not(:disabled){border-color:var(--ink);}
+.ctrl-btn:disabled{opacity:.6;cursor:default;}
+.ctrl-btn.play{min-width:132px;border-color:var(--accent);color:var(--accent);}
+.ctrl-btn.step{font-size:14px;padding:8px 12px;}
+.ctrl-label{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px;}
+.speed-group{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+.speed-btn{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);background:var(--panel-2);border:none;padding:7px 11px;cursor:pointer;border-right:1px solid var(--line);transition:background .2s,color .2s;}
+.speed-btn:last-child{border-right:none;}
+.speed-btn.active{background:var(--accent-dim);color:var(--accent);}
+.step-counter{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-left:auto;}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important;animation-duration:.001ms !important;}}
+
+/* ---- shared components ---- */
+.stage-lr{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+.stage-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start;}
+@media (max-width:820px){.stage-lr,.stage-3{grid-template-columns:1fr;}}
+.col{display:flex;flex-direction:column;gap:14px;}
+.panel-pad{padding:16px 18px;}
+.business-card{display:flex;align-items:center;gap:12px;}
+.business-ico{font-size:26px;line-height:1;}
+.business-txt b{display:block;color:var(--ink);font-size:14px;}
+.business-txt span{color:var(--muted);font-size:11.5px;font-family:"IBM Plex Mono",monospace;}
+.mono{font-family:"IBM Plex Mono",monospace;}
+.stack{display:flex;flex-direction:column;gap:7px;}
+.rowi{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);font-size:12.5px;color:var(--muted);transition:border-color .3s,color .3s,background .3s,opacity .3s;animation:pop .22s ease;}
+.rowi .grow{flex:1;}
+.rowi.hl{border-color:var(--accent);color:var(--ink);background:var(--accent-dim);}
+.rowi.warn{border-color:var(--accent-2);color:var(--ink);background:var(--accent2-dim);}
+.rowi.good{border-color:var(--good);color:var(--good);background:var(--accent-dim);}
+.rowi.bad{border-color:var(--danger);color:var(--danger);text-decoration:line-through;opacity:.75;}
+.rowi.dim{opacity:.6;}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.03em;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap;}
+.tag.info{color:var(--violet);border-color:var(--violet);background:var(--violet-dim);}
+.tag.com{color:var(--accent-2);border-color:var(--accent-2);background:var(--accent2-dim);}
+.tag.tra{color:var(--good);border-color:var(--good);background:var(--accent-dim);}
+.tag.nav{color:var(--accent);border-color:var(--accent);background:var(--accent-dim);}
+.tag.mix{color:var(--danger);border-color:var(--danger);background:var(--danger-dim);}
+.chiprow{display:flex;flex-wrap:wrap;gap:7px;min-height:28px;}
+.kchip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:6px 10px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted);opacity:0;transform:scale(.92);animation:pop .2s ease forwards;}
+.kchip.good{border-color:var(--good);color:var(--good);background:var(--accent-dim);}
+.kchip.warn{border-color:var(--accent-2);color:var(--accent-2);background:var(--accent2-dim);}
+.kchip.bad{border-color:var(--danger);color:var(--danger);text-decoration:line-through;}
+.kchip.dim{opacity:.6 !important;}
+@keyframes pop{from{opacity:0;transform:scale(.94);}to{opacity:1;transform:scale(1);}}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.bar-lbl{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);width:150px;flex:none;line-height:1.3;}
+.bar-track{flex:1;height:11px;background:var(--panel-2);border-radius:5px;overflow:hidden;border:1px solid var(--line);}
+.bar-fill{height:100%;width:0%;border-radius:5px;transition:width .6s ease;background:linear-gradient(90deg,var(--accent-2),#d88b3f);}
+.bar-fill.g{background:linear-gradient(90deg,var(--accent),#2fae92);}
+.bar-fill.r{background:linear-gradient(90deg,var(--danger),#b9533f);}
+.bar-val{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);width:56px;flex:none;text-align:right;}
+.query-box{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:10px 12px;}
+.query-box mark{background:var(--accent2-dim);color:var(--accent-2);border-radius:3px;padding:0 3px;}
+.serp{display:flex;flex-direction:column;gap:6px;}
+.sres{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel-2);font-size:12px;color:var(--ink);animation:pop .25s ease;}
+.sres .k{font-family:"IBM Plex Mono",monospace;font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;width:92px;flex:none;}
+.sres.feat{border-color:var(--violet);background:var(--violet-dim);}
+.sres.ad{border-color:var(--accent-2);background:var(--accent2-dim);}
+.sres.org{border-color:var(--line);}
+.sres.ai{border-color:var(--accent);background:var(--accent-dim);}
+.big{font-family:"IBM Plex Mono",monospace;font-size:44px;font-weight:600;color:var(--accent);line-height:1;}
+.kv{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--line);}
+.kv:last-child{border-bottom:none;}
+.kv span:first-child{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;}
+.empty{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);padding:6px 0;}
+table.t{width:100%;border-collapse:separate;border-spacing:0 5px;font-size:12px;}
+table.t th{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:0 8px;}
+table.t td{padding:8px;background:var(--panel-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);color:var(--muted);transition:background .3s,color .3s;}
+table.t td:first-child{border-left:1px solid var(--line);border-radius:7px 0 0 7px;}
+table.t td:last-child{border-right:1px solid var(--line);border-radius:0 7px 7px 0;}
+table.t tr.hl td{background:var(--accent-dim);color:var(--ink);border-color:var(--accent);}
+table.t tr.warn td{background:var(--accent2-dim);color:var(--ink);border-color:var(--accent-2);}
+table.t tr.bad td{color:var(--danger);text-decoration:line-through;opacity:.6;}
+table.t tr.dim td{opacity:.6;}
+table.t td.new{color:var(--accent);font-weight:600;animation:pop .3s ease;}
+
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">SEO · UP2 · Keyword Research</p>
+  <h1>Long tail: cuestión de volumen, no de palabras</h1>
+  <p class="sub">Clasificar por número de palabras es un buen punto de partida, pero la decisión se toma con datos. Comparamos lo que "parece" cada keyword con su volumen real.</p>
+
+  <div class="stage-lr">
+    <div class="col">
+      <div class="panel panel-pad"><span class="lbl">Clasificación por nº de palabras</span><div class="stack" id="byWords"></div></div>
+    </div>
+    <div class="col">
+      <div class="panel panel-pad"><span class="lbl">Volumen mensual (datos ilustrativos)</span><div id="vol"></div></div>
+      <div class="panel panel-pad" id="statPanel" style="display:none;text-align:center;">
+        <div class="big">≈ 93 %</div>
+        <p style="color:var(--muted);font-size:12.5px;margin:10px 0 0;">de las keywords tienen menos de 10 búsquedas al mes<br><span class="mono" style="font-size:10px;">Fuente: Ahrefs, base de datos EE. UU.</span></p>
+      </div>
+    </div>
+  </div>
+  <p class="note" id="noteBox"></p>
+  <div class="timeline"><div class="timeline-fill" id="fill"></div></div>
+  <p class="verdict" id="verdict"></p>
+  <div class="controls">
+    <div class="ctrl-group">
+      <button id="rewindBtn" class="ctrl-btn step" title="Rebobinar al principio">&#9198;</button>
+      <button id="prevBtn" class="ctrl-btn step" title="Paso anterior">&#9664;&#9664;</button>
+      <button id="playBtn" class="ctrl-btn play">&#9654; Reproducir</button>
+      <button id="nextBtn" class="ctrl-btn step" title="Paso siguiente">&#9654;&#9654;</button>
+      <button id="delayPlayBtn" class="ctrl-btn" title="Empezar tras una cuenta atrás de 10s">&#9654; +10s</button>
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Velocidad</span>
+      <div class="speed-group">
+        <button class="speed-btn active" data-speed="0.25">0.25&times;</button>
+        <button class="speed-btn" data-speed="0.5">0.5&times;</button>
+        <button class="speed-btn" data-speed="1">1&times;</button>
+        <button class="speed-btn" data-speed="2">2&times;</button>
+      </div>
+    </div>
+    <span class="step-counter" id="stepCounter">Paso 1 / N</span>
+  </div>
+</div>
+<script>
+var noteBox = document.getElementById('noteBox');
+function $(id){ return document.getElementById(id); }
+
+var K=[
+ {k:'mercadona',w:1,v:100,vl:'1.000.000+'},
+ {k:'cómo hacer una tortilla de patatas',w:6,v:62,vl:'≈ 60.000'},
+ {k:'cafetera italiana',w:2,v:30,vl:'≈ 15.000'},
+ {k:'zapatillas trail mujer impermeables',w:4,v:6,vl:'≈ 300'},
+ {k:'cafetera italiana inducción 6 tazas acero',w:6,v:2,vl:'≈ 40'}
+];
+function byWords(w){return w<=2?['Short tail','nav']:(w<=4?['Middle tail','com']:['Long tail','info']);}
+function byVol(i){return ['Cabeza','Cabeza','Cuerpo','Cola','Cola'][i];}
+function renderState(s){
+  $('byWords').innerHTML=K.slice(0,s.n||0).map(function(x,i){
+    var t=byWords(x.w), cls=(s.flag&&s.flag.indexOf(i)!==-1)?'warn':'';
+    var right=s.reclass?'<span class="tag tra">'+byVol(i)+' por volumen</span>':'<span class="tag '+t[1]+'">'+t[0]+'</span>';
+    return '<div class="rowi '+cls+'"><span class="grow">'+x.k+'</span><span class="tag">'+x.w+' pal.</span>'+right+'</div>';}).join('');
+  $('vol').innerHTML=s.vol?K.map(function(x,i){return '<div class="bar-row"><span class="bar-lbl">'+x.k+'</span><div class="bar-track"><div class="bar-fill '+((s.flag&&s.flag.indexOf(i)!==-1)?'r':'')+'" style="width:'+x.v+'%"></div></div><span class="bar-val">'+x.vl+'</span></div>';}).join(''):'<p class="empty">Aún no hemos mirado los datos.</p>';
+  $('statPanel').style.display=s.stat?'':'none';
+}
+var STATES=[
+ {note:'Regla de clase: 1-2 palabras = short tail, 3-4 = middle tail, 5 o más = long tail. ¿Funciona siempre?'},
+ {n:5,note:'Clasificamos cinco keywords solo contando palabras. Parece fácil: la tortilla es long tail y "mercadona" es short tail.'},
+ {n:5,vol:1,note:'Ahora miramos el volumen real. "Mercadona" es enorme, sí... pero "cómo hacer una tortilla de patatas" tiene muchísimas búsquedas pese a sus 6 palabras.'},
+ {n:5,vol:1,flag:[1,3],note:'Dos sorpresas: la tortilla tiene volumen de cabeza y "zapatillas trail mujer impermeables" (4 palabras, "middle tail") apenas se busca.'},
+ {n:5,vol:1,flag:[1,3],reclass:1,note:'Reclasificamos por volumen: cabeza, cuerpo o cola. Esta es la clasificación que usan los profesionales.'},
+ {n:5,vol:1,reclass:1,stat:1,note:'Y la cola es inmensa: casi todas las keywords que existen tienen muy pocas búsquedas. Sueltas no son nada; juntas son la mayor parte del tráfico.'},
+ {n:5,vol:1,reclass:1,stat:1,verdict:'Una keyword es <b>long tail por su bajo volumen</b>, no por tener muchas palabras. Cuenta palabras para empezar, pero <b>decide con los datos de volumen</b>.'}
+];
+var DURATIONS=[900,1000,1100,1100,1000,1100,900];
+
+</script>
+<script>
+(function(){
+  var playBtn=$('playBtn'),prevBtn=$('prevBtn'),nextBtn=$('nextBtn'),rewindBtn=$('rewindBtn'),delayPlayBtn=$('delayPlayBtn');
+  var stepCounter=$('stepCounter'),fill=$('fill'),verdict=$('verdict');
+  var speedBtns=document.querySelectorAll('.speed-btn');
+  var curIndex=0,playing=false,speed=0.25,playTimer=null,countdownTimer=null;
+  function stopCountdown(){ if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;} delayPlayBtn.textContent='\u25B6 +10s'; playBtn.disabled=false; }
+  function show(i){
+    var s=STATES[i];
+    renderState(s,i);
+    noteBox.textContent=s.note||'';
+    verdict.innerHTML=s.verdict||'';
+    verdict.classList.toggle('show',!!s.verdict);
+    fill.style.width=(i/(STATES.length-1)*100)+'%';
+    stepCounter.textContent='Paso '+(i+1)+' / '+STATES.length;
+    prevBtn.disabled=(i===0); nextBtn.disabled=(i===STATES.length-1);
+  }
+  function stopPlay(){ playing=false; playBtn.textContent='\u25B6 Reproducir'; clearTimeout(playTimer); }
+  function scheduleNext(){
+    if(curIndex>=STATES.length-1){ stopPlay(); return; }
+    var dur=(DURATIONS[curIndex]||950)/speed;
+    playTimer=setTimeout(function(){ curIndex++; show(curIndex); scheduleNext(); },dur);
+  }
+  function startPlay(){ if(curIndex>=STATES.length-1){curIndex=0;show(0);} playing=true; playBtn.textContent='\u2758\u2758 Pausar'; scheduleNext(); }
+  playBtn.addEventListener('click',function(){ stopCountdown(); playing?stopPlay():startPlay(); });
+  prevBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=Math.max(0,curIndex-1); show(curIndex); });
+  nextBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=Math.min(STATES.length-1,curIndex+1); show(curIndex); });
+  rewindBtn.addEventListener('click',function(){ stopCountdown(); stopPlay(); curIndex=0; show(0); });
+  speedBtns.forEach(function(b){ b.addEventListener('click',function(){ speedBtns.forEach(function(x){x.classList.remove('active');}); b.classList.add('active'); speed=parseFloat(b.getAttribute('data-speed')); }); });
+  delayPlayBtn.addEventListener('click',function(){
+    if(countdownTimer){ stopCountdown(); return; }
+    stopPlay(); var remaining=10; playBtn.disabled=true; delayPlayBtn.textContent='Empieza en '+remaining+'s\u2026';
+    countdownTimer=setInterval(function(){ remaining--; if(remaining<=0){ clearInterval(countdownTimer); countdownTimer=null; delayPlayBtn.textContent='\u25B6 +10s'; playBtn.disabled=false; startPlay(); } else { delayPlayBtn.textContent='Empieza en '+remaining+'s\u2026'; } },1000);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.target&&(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.isContentEditable)) return;
+    var adv=['ArrowRight','ArrowDown','PageDown',' ','Spacebar'], back=['ArrowLeft','ArrowUp','PageUp','Backspace'];
+    if(adv.indexOf(e.key)!==-1){ e.preventDefault(); nextBtn.click(); } else if(back.indexOf(e.key)!==-1){ e.preventDefault(); prevBtn.click(); }
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
