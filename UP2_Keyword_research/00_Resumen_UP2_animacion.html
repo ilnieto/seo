@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UP2 · La tabla de Keyword Research, paso a paso</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;
+  --ink:#ffffff;--muted:#f0f3f6;--accent:#4dd9c0;--accent-2:#f2a154;
+  --good:#7cd992;--danger:#e2725b;--accent-dim:rgba(77,217,192,.12);
+  --in-bg:rgba(242,205,95,.13);--calc-bg:rgba(110,160,255,.14);
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{margin:0;color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;padding:28px 12px 170px}
+.wrap{width:100%;margin:0}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 10px}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:clamp(19px,3.4vw,27px);font-weight:600;margin:0 0 10px}
+.sub{text-align:center;color:#fff;font-size:15px;max-width:900px;margin:0 auto 14px;line-height:1.55}
+.legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:#fff;margin:0 0 12px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid var(--line)}
+.sw.in{background:var(--in-bg)}
+.sw.calc{background:var(--calc-bg)}
+.counter{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--accent);margin:0 0 12px;min-height:20px}
+
+/* tabla a todo el ancho de la pantalla */
+.tbl-wrap{width:100%}
+table.kw{width:100%;border-collapse:separate;border-spacing:0;table-layout:auto;font-size:13px}
+table.kw th{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:500;text-align:left;padding:8px 6px;background:var(--panel-2);border-bottom:1px solid var(--line);white-space:normal;line-height:1.3;transition:color .3s,background .3s}
+table.kw th.on{color:var(--accent);background:var(--accent-dim)}
+table.kw td{padding:9px 6px;border-bottom:1px solid var(--line);color:#fff;white-space:normal;line-height:1.35;transition:background .3s,color .3s,opacity .3s}
+table.kw td.in{background:var(--in-bg)}
+table.kw td.calc{background:var(--calc-bg)}
+table.kw td.ph{color:#5d6876;text-align:center}
+table.kw td.on{outline:2px solid var(--accent);outline-offset:-2px}
+table.kw td.num{font-family:"IBM Plex Mono",monospace;text-align:right}
+table.kw td.ctr{text-align:center}
+table.kw td.pr1{color:var(--good);font-weight:600}
+table.kw td.pr2{color:var(--accent-2);font-weight:600}
+table.kw td.pr3{color:var(--muted)}
+table.kw td.bad{color:var(--danger);text-decoration:line-through}
+table.kw tr.dim td{opacity:.42}
+table.kw tr.clA td.cl{color:var(--accent)}
+table.kw tr.clB td.cl{color:var(--accent-2)}
+
+/* herramientas del paso */
+.tools{max-width:1100px;margin:16px auto 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;min-height:86px}
+.tools .lbl{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.tools .tx{font-size:14.5px;line-height:1.55;color:#fff;margin:0}
+
+.note{font-family:"IBM Plex Mono",monospace;font-size:16px;color:#fff;text-align:center;min-height:52px;line-height:1.5;padding:0 10px;margin:18px auto 0;max-width:1000px}
+.timeline{margin:14px auto 0;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.timeline-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .05s linear}
+.verdict{text-align:center;margin:14px auto 0;max-width:1000px;font-size:16px;color:#fff;line-height:1.6;min-height:30px;opacity:0;transition:opacity .4s}
+.verdict.show{opacity:1}
+.verdict b{color:#78d38f;font-weight:600}
+
+.controls{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);width:calc(100% - 24px);max-width:1200px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 18px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,.5)}
+.ctrl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ctrl-btn{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.03em;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s}
+.ctrl-btn:hover:not(:disabled){border-color:var(--ink)}
+.ctrl-btn:disabled{opacity:.35;cursor:default}
+.ctrl-btn.play{min-width:132px;border-color:var(--accent);color:var(--accent)}
+.ctrl-btn.step{font-size:14px;padding:8px 12px}
+.ctrl-label{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.speed-group{display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.speed-btn{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--muted);background:var(--panel-2);border:none;padding:7px 11px;cursor:pointer;border-right:1px solid var(--line)}
+.speed-btn:last-child{border-right:none}
+.speed-btn.active{background:var(--accent-dim);color:var(--accent)}
+.step-counter{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);margin-left:auto}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important;animation-duration:.001ms !important}}
+@media (max-width:760px){
+  table.kw{font-size:11px}
+  table.kw th{font-size:9px;padding:5px 3px}
+  table.kw td{padding:5px 3px}
+  .step-counter{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">SEO · UP2 · Keyword Research</p>
+  <h1>La tabla de keywords, paso a paso</h1>
+  <p class="sub">Así lo haría un profesional de SEO: se investigan muchas keywords, se miden, se filtran y se agrupan en clusters. La tabla solo muestra unas pocas para entender el método.</p>
+  <div class="legend">
+    <span><i class="sw in"></i> Amarillo: lo rellenas tú</span>
+    <span><i class="sw calc"></i> Azul: cálculo automático</span>
+    <span>Datos ilustrativos, siguiendo la plantilla</span>
+  </div>
+  <p class="counter" id="counter"></p>
+
+  <div class="tbl-wrap">
+    <table class="kw">
+      <thead><tr id="headRow"></tr></thead>
+      <tbody id="body"></tbody>
+    </table>
+  </div>
+
+  <div class="tools">
+    <span class="lbl" id="toolLbl">Herramientas de este paso</span>
+    <p class="tx" id="toolBox"></p>
+  </div>
+
+  <p class="note" id="noteBox"></p>
+  <div class="timeline"><div class="timeline-fill" id="fill"></div></div>
+  <p class="verdict" id="verdict"></p>
+</div>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <button id="rewindBtn" class="ctrl-btn step" title="Rebobinar al principio">&#9198;</button>
+    <button id="prevBtn" class="ctrl-btn step" title="Paso anterior">&#9664;&#9664;</button>
+    <button id="playBtn" class="ctrl-btn play">&#9654; Reproducir</button>
+    <button id="nextBtn" class="ctrl-btn step" title="Paso siguiente">&#9654;&#9654;</button>
+    <button id="delayPlayBtn" class="ctrl-btn" title="Empezar tras una cuenta atrás de 10s">&#9654; +10s</button>
+  </div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Velocidad</span>
+    <div class="speed-group">
+      <button class="speed-btn" data-speed="0.5">0.5&times;</button>
+      <button class="speed-btn active" data-speed="1">1&times;</button>
+      <button class="speed-btn" data-speed="2">2&times;</button>
+    </div>
+  </div>
+  <span class="step-counter" id="stepCounter">Paso 1 / N</span>
+</div>
+
+<script>
+/* Reglas de la plantilla (hoja Escalas) */
+function calcD(v){ if(v<50) return 1; if(v<200) return 2; if(v<1000) return 3; if(v<5000) return 4; return 5; }
+function calcF(kd){ if(kd<15) return 5; if(kd<30) return 4; if(kd<50) return 3; if(kd<70) return 2; return 1; }
+var INTENT = {Transaccional:5, Comercial:4, Mixta:3, Informacional:2, Navegacional:1};
+function calcI(t){ return INTENT[t]; }
+function calcScore(d,f,r,i){ return Math.round((d*0.25 + f*0.25 + r*0.3 + i*0.2)*100)/100; }
+function calcPrio(score,r){ if(r<=1) return 'Descartar'; if(score>=4) return 1; if(score>=3) return 2; return 3; }
+
+/* Filas de ejemplo: dos clusters (A café de especialidad, B cafeteras) */
+var DATA = [
+  {id:1, cl:'A · Café', kw:'café de especialidad', rol:'Principal', fuente:'Semilla', vol:5400, kd:45, intent:'Comercial', rel:5, estado:'Seleccionada'},
+  {id:2, cl:'A · Café', kw:'cómo hacer latte art en casa', rol:'Secundaria', fuente:'Answer The Public', vol:3600, kd:60, intent:'Informacional', rel:1, estado:'Descartada'},
+  {id:3, cl:'A · Café', kw:'comprar café de especialidad online', rol:'Secundaria', fuente:'Búsquedas relacionadas', vol:1900, kd:38, intent:'Transaccional', rel:5, estado:'Seleccionada'},
+  {id:4, cl:'A · Café', kw:'qué es el café de especialidad', rol:'Secundaria', fuente:'Autocompletado', vol:720, kd:12, intent:'Informacional', rel:4, estado:'Pendiente'},
+  {id:5, cl:'B · Cafeteras', kw:'mejor cafetera superautomática', rol:'Principal', fuente:'Semilla', vol:2400, kd:52, intent:'Comercial', rel:5, estado:'Pendiente'},
+  {id:6, cl:'B · Cafeteras', kw:'cafetera superautomática precio', rol:'Secundaria', fuente:'Autocompletado', vol:880, kd:28, intent:'Transaccional', rel:4, estado:'Pendiente'}
+];
+DATA.forEach(function(r){
+  r.clIdx = r.cl.charAt(0) === 'A' ? 0 : 1;
+  r.D = calcD(r.vol);
+  r.F = calcF(r.kd);
+  r.I = calcI(r.intent);
+  r.score = calcScore(r.D, r.F, r.rel, r.I);
+  r.prio = calcPrio(r.score, r.rel);
+});
+
+/* Columnas: etiqueta, clave, etapa en que aparece, tipo (in = dato, calc = fórmula) */
+var COLS = [
+  {h:'ID', k:'id', st:1, t:'in', ctr:true},
+  {h:'Cluster', k:'cl', st:1, t:'in', cls:'cl'},
+  {h:'Keyword', k:'kw', st:1, t:'in'},
+  {h:'Rol', k:'rol', st:1, t:'in'},
+  {h:'Fuente', k:'fuente', st:1, t:'in'},
+  {h:'Volumen', k:'vol', st:2, t:'in', num:true},
+  {h:'KD (0-100)', k:'kd', st:2, t:'in', num:true},
+  {h:'D', k:'D', st:2, t:'calc', ctr:true},
+  {h:'F', k:'F', st:2, t:'calc', ctr:true},
+  {h:'Intención', k:'intent', st:3, t:'in'},
+  {h:'I', k:'I', st:3, t:'calc', ctr:true},
+  {h:'Relevancia (1-5)', k:'rel', st:4, t:'in', ctr:true},
+  {h:'Puntuación', k:'score', st:5, t:'calc', num:true},
+  {h:'Prioridad', k:'prio', st:5, t:'calc', ctr:true},
+  {h:'Estado', k:'estado', st:6, t:'in'}
+];
+
+var headRow = document.getElementById('headRow');
+var body = document.getElementById('body');
+COLS.forEach(function(c){
+  var th = document.createElement('th');
+  th.textContent = c.h;
+  th.setAttribute('data-st', c.st);
+  headRow.appendChild(th);
+});
+var THS = headRow.children;
+var TRS = [];
+var CELLS = []; // CELLS[fila][columna]
+DATA.forEach(function(r){
+  var tr = document.createElement('tr');
+  tr.className = r.clIdx === 0 ? 'clA' : 'clB';
+  var rowCells = [];
+  COLS.forEach(function(c){
+    var td = document.createElement('td');
+    td.setAttribute('data-st', c.st);
+    td.className = c.t + (c.num ? ' num' : '') + (c.ctr ? ' ctr' : '') + (c.cls ? ' ' + c.cls : '');
+    tr.appendChild(td);
+    rowCells.push(td);
+  });
+  body.appendChild(tr);
+  TRS.push(tr);
+  CELLS.push(rowCells);
+});
+
+function valueOf(r, c){
+  var v = r[c.k];
+  if(c.k === 'vol') return r.vol.toLocaleString('es-ES');
+  if(c.k === 'prio') return (typeof v === 'number') ? 'P' + v : v;
+  if(c.k === 'score') return r.score.toFixed(2).replace('.', ',');
+  return v;
+}
+
+/* Textos de cada paso */
+var NOTES = [
+  'Así se construye la tabla de keywords de un proyecto real. Empezamos sin nada y la vamos rellenando paso a paso.',
+  'Paso 1, Identificar: investigamos muchas keywords (aquí 120) desde varias fuentes. La columna Fuente guarda de dónde sale cada una. La tabla solo muestra 6 para entender el método.',
+  'Paso 2, Volumen y KD: de las 120, solo 64 tienen volumen y dificultad medibles. Las demás se descartan o se revisan. D y F salen de las escalas de la plantilla.',
+  'Paso 3, Intención: leemos la página de resultados de cada keyword. Lo que ves en la SERP dice si el usuario quiere aprender, comparar o comprar. Así sale la I.',
+  'Paso 4, Relevancia: aquí entra el criterio del negocio y lo que ya trae visitas en Search Console. Relevancia 1 = descartar, aunque la puntuación sea buena.',
+  'Paso 5, Puntuación y prioridad: Puntuación = D × 0,25 + F × 0,25 + R × 0,30 + I × 0,20. Prioridad 1 si es 4 o más, 2 si es 3 o más, 3 si es menos.',
+  'Paso 6, Estado y clusters: el test de solapamiento SERP confirma qué keywords comparten resultados. Si las comparten, van en la misma página. Así salen los dos clusters: café y cafeteras.',
+  'Paso 7, Filtrar, ordenar y mapear: las de relevancia 1 bajan al final, las de cada cluster quedan juntas y ordenadas por puntuación. Cada cluster se asigna a una URL en el Keyword map.'
+];
+
+var TOOLS = [
+  'Para identificar, combina fuentes: la semilla del negocio, el autocompletado de Google, "búsquedas relacionadas", Answer The Public (preguntas), Google Trends (tendencia) y Search Console (lo que ya te trae visitas). Anota la fuente de cada keyword.',
+  'Para volumen y KD, usa la misma herramienta para todo el volumen y otra para toda la dificultad, siempre con España como país (por ejemplo Ubersuggest, Semrush o Ahrefs). El Planificador de palabras clave de Google sirve para el volumen, pero su "competencia" es de anuncios: no la uses como KD.',
+  'Para la intención, revisa la SERP en incógnito, en España: mira si salen guías, comparativas, fichas de producto, Shopping o "Personas también preguntan". El tipo de resultado te dice la intención real.',
+  'Para la relevancia, combina tu criterio con datos reales: Search Console te muestra qué keywords ya posicionan y con qué páginas. Si el tema no encaja con lo que vendes, la relevancia es 1.',
+  'Para puntuar, usa la hoja Escalas de la plantilla: pesos D 0,25 · F 0,25 · R 0,30 · I 0,20. No cambies los pesos sin justificarlo para el cliente.',
+  'Para el estado y los clusters, usa el test de solapamiento SERP: copia el top 10 orgánico de dos keywords (en incógnito, España). 4 o más coincidencias = misma página · 3 = decide la intención · 0-2 = páginas distintas. Para ver a los competidores reales, usa Sistrix o el gap de competidores.',
+  'Para mapear, usa la hoja Keyword map: una URL por cluster. Revisa que no haya dos URLs para la misma intención, porque se harían la competencia entre sí.'
+];
+
+var COUNTER = [
+  'Lista de partida: vacía',
+  'Keywords identificadas: 120 (en la tabla se muestran 6)',
+  'Con volumen y KD medibles: 64 de 120',
+  'Con intención clasificada: 64',
+  'Con relevancia asignada: 64',
+  'Puntuadas y priorizadas: 64',
+  'Clusters confirmados: 2 (A · Café y B · Cafeteras)',
+  'Lista de trabajo: 2 clusters, 2 URLs en el Keyword map'
+];
+
+var TOOL_LABEL = [
+  'Herramientas de este paso',
+  'Herramientas de este paso · Identificar',
+  'Herramientas de este paso · Volumen y KD',
+  'Herramientas de este paso · Intención',
+  'Herramientas de este paso · Relevancia',
+  'Herramientas de este paso · Puntuación',
+  'Herramientas de este paso · Estado y clusters',
+  'Herramientas de este paso · Filtrar y mapear'
+];
+
+var VERDICT = 'Un profesional de SEO investiga <b>muchas keywords</b> y las filtra por <b>datos</b>, <b>intención</b> y <b>relevancia</b>. Las <b>puntuaciones</b> ordenan la lista y los <b>clusters</b> deciden la URL de cada grupo. La tabla que ves es solo una muestra del proceso.';
+
+var STATES = [];
+for(var s=0; s<=7; s++){ STATES.push({st:s, note:NOTES[s]}); }
+STATES.push({st:8, note:'', verdict:VERDICT});
+
+var DURATIONS = [1500,2400,2400,2400,2200,2600,2600,2800,1800];
+
+function orderRows(stage){
+  var idx = DATA.map(function(_, i){ return i; });
+  if(stage >= 7){
+    idx.sort(function(a, b){
+      var da = DATA[a].rel <= 1 ? 1 : 0, db = DATA[b].rel <= 1 ? 1 : 0;
+      if(da !== db) return da - db;
+      if(DATA[a].clIdx !== DATA[b].clIdx) return DATA[a].clIdx - DATA[b].clIdx;
+      return DATA[b].score - DATA[a].score;
+    });
+  }
+  idx.forEach(function(i){ body.appendChild(TRS[i]); });
+  for(var i=0; i<DATA.length; i++){
+    TRS[i].classList.toggle('dim', stage >= 7 && DATA[i].rel <= 1);
+  }
+}
+
+function renderState(stage){
+  for(var h=0; h<THS.length; h++){
+    var sth = Number(THS[h].getAttribute('data-st'));
+    THS[h].classList.toggle('on', stage === sth && stage >= 1 && stage <= 6);
+  }
+  for(var ri=0; ri<DATA.length; ri++){
+    var r = DATA[ri];
+    for(var ci=0; ci<COLS.length; ci++){
+      var c = COLS[ci];
+      var td = CELLS[ri][ci];
+      var shown = stage >= c.st;
+      td.classList.toggle('on', stage === c.st && stage >= 1 && stage <= 6);
+      td.classList.remove('bad','pr1','pr2','pr3','ph');
+      if(!shown){
+        td.textContent = '·';
+        td.classList.add('ph');
+      } else {
+        td.textContent = valueOf(r, c);
+        if(c.k === 'estado' && r.estado === 'Descartada') td.classList.add('bad');
+        if(c.k === 'prio'){
+          if(r.prio === 1) td.classList.add('pr1');
+          else if(r.prio === 2) td.classList.add('pr2');
+          else td.classList.add('pr3');
+        }
+      }
+    }
+  }
+  orderRows(stage);
+  document.getElementById('counter').textContent = COUNTER[stage];
+  document.getElementById('toolLbl').textContent = TOOL_LABEL[stage];
+  document.getElementById('toolBox').textContent = stage === 0 ? 'Abre la tabla vacía y sigue el orden de las columnas: primero identificas, luego mides, filtras y agrupas.' : TOOLS[stage - 1];
+}
+
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var playBtn=$('playBtn'), prevBtn=$('prevBtn'), nextBtn=$('nextBtn'), rewindBtn=$('rewindBtn'), delayPlayBtn=$('delayPlayBtn');
+  var stepCounter=$('stepCounter'), fill=$('fill'), verdict=$('verdict'), noteBox=$('noteBox');
+  var speedBtns=document.querySelectorAll('.speed-btn');
+  var curIndex=0, playing=false, speed=1, playTimer=null, countdownTimer=null;
+
+  function stopCountdown(){
+    if(countdownTimer){ clearInterval(countdownTimer); countdownTimer=null; }
+    delayPlayBtn.textContent='▶ +10s'; playBtn.disabled=false;
+  }
+  function show(i){
+    var s = STATES[i];
+    renderState(s.st);
+    noteBox.textContent = s.note || '';
+    verdict.innerHTML = s.verdict || '';
+    verdict.classList.toggle('show', !!s.verdict);
+    fill.style.width = (i/(STATES.length-1)*100) + '%';
+    stepCounter.textContent = 'Paso ' + (i+1) + ' / ' + STATES.length;
+    prevBtn.disabled = (i===0);
+    nextBtn.disabled = (i===STATES.length-1);
+  }
+  function stopPlay(){ playing=false; playBtn.textContent='▶ Reproducir'; clearTimeout(playTimer); }
+  function scheduleNext(){
+    if(curIndex >= STATES.length-1){ stopPlay(); return; }
+    var dur = DURATIONS[curIndex] / speed;
+    playTimer = setTimeout(function(){ curIndex++; show(curIndex); scheduleNext(); }, dur);
+  }
+  function startPlay(){
+    if(curIndex >= STATES.length-1){ curIndex=0; show(0); }
+    playing=true; playBtn.textContent='❘❘ Pausar'; scheduleNext();
+  }
+  playBtn.addEventListener('click', function(){ stopCountdown(); playing ? stopPlay() : startPlay(); });
+  prevBtn.addEventListener('click', function(){ stopCountdown(); stopPlay(); curIndex=Math.max(0,curIndex-1); show(curIndex); });
+  nextBtn.addEventListener('click', function(){ stopCountdown(); stopPlay(); curIndex=Math.min(STATES.length-1,curIndex+1); show(curIndex); });
+  rewindBtn.addEventListener('click', function(){ stopCountdown(); stopPlay(); curIndex=0; show(0); });
+  speedBtns.forEach(function(b){
+    b.addEventListener('click', function(){
+      speedBtns.forEach(function(x){ x.classList.remove('active'); });
+      b.classList.add('active');
+      speed = parseFloat(b.getAttribute('data-speed'));
+    });
+  });
+  delayPlayBtn.addEventListener('click', function(){
+    if(countdownTimer){ stopCountdown(); return; }
+    stopPlay();
+    var remaining = 10; playBtn.disabled = true; delayPlayBtn.textContent = 'Empieza en ' + remaining + 's…';
+    countdownTimer = setInterval(function(){
+      remaining--;
+      if(remaining <= 0){ clearInterval(countdownTimer); countdownTimer=null; delayPlayBtn.textContent='▶ +10s'; playBtn.disabled=false; startPlay(); }
+      else { delayPlayBtn.textContent = 'Empieza en ' + remaining + 's…'; }
+    }, 1000);
+  });
+  document.addEventListener('keydown', function(e){
+    if(e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA' || e.target.tagName==='SELECT' || e.target.isContentEditable)) return;
+    var advance = ['ArrowRight','ArrowDown','PageDown',' ','Spacebar'];
+    var back = ['ArrowLeft','ArrowUp','PageUp','Backspace'];
+    if(advance.indexOf(e.key)!==-1){ e.preventDefault(); nextBtn.click(); }
+    else if(back.indexOf(e.key)!==-1){ e.preventDefault(); prevBtn.click(); }
+  });
+  show(0);
+})();
+</script>
+</body>
+</html>
