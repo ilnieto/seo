@@ -1,0 +1,403 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>IA · Generador de prompts de keyword research</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;--ink:#ffffff;--muted:#f0f3f6;--accent:#4dd9c0;--accent-2:#f2a154;--good:#7cd992;--accent-dim:rgba(77,217,192,.12);--accent2-dim:rgba(242,161,84,.12);}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;padding:44px 16px 80px}
+.wrap{max-width:860px;margin:0 auto}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:26px;font-weight:600;margin:0 0 10px}
+.sub{text-align:center;color:var(--muted);font-size:14px;margin:0 auto 26px;max-width:620px;line-height:1.55}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.lbl{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:9px}
+.ctrl-btn{font-family:"IBM Plex Mono",monospace;font-size:12px;letter-spacing:.03em;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s}
+.ctrl-btn:hover:not(:disabled){border-color:var(--ink)}
+.ctrl-btn:disabled{opacity:.35;cursor:default}
+.ctrl-btn.play{min-width:132px;border-color:var(--accent);color:var(--accent)}
+.back{display:inline-block;margin-bottom:22px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--accent);text-decoration:none}
+.back:hover{text-decoration:underline}
+@media (prefers-reduced-motion: reduce){*{transition-duration:.001ms !important}}
+/* ---- Tu turno: generador de prompts ---- */
+.gen{margin-top:70px;}
+.gen-panel{padding:26px 22px;}
+.gen-title{font-family:"IBM Plex Mono",monospace;font-size:clamp(17px,3.4vw,22px);font-weight:600;margin:0 0 8px;text-align:center;color:var(--ink);}
+.gen-sub{text-align:center;color:var(--muted);font-size:15px;line-height:1.55;max-width:680px;margin:0 auto 22px;}
+.task-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:22px;}
+.task-btn{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;cursor:pointer;transition:border-color .2s,color .2s,background .2s;}
+.task-btn:hover{border-color:var(--ink);color:var(--ink);}
+.task-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim);}
+.wiz{max-width:720px;margin:0 auto;}
+.wiz-prog{height:4px;background:var(--line);border-radius:2px;overflow:hidden;margin-bottom:14px;}
+.wiz-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent-2),var(--accent));transition:width .3s ease;}
+.wiz-q{font-size:17px;color:var(--ink);margin:4px 0 14px;line-height:1.45;font-weight:500;}
+.wiz-input{width:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:15px;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 13px;outline:none;transition:border-color .2s;}
+.wiz-input:focus{border-color:var(--accent);}
+textarea.wiz-input{min-height:150px;resize:vertical;font-family:"IBM Plex Mono",monospace;font-size:13px;}
+select.wiz-input{appearance:auto;}
+.wiz-nav{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:18px;flex-wrap:wrap;}
+.wiz-nav .ctrl-btn:disabled{opacity:.35;}
+.prompt-box{font-family:"IBM Plex Mono",monospace;font-size:12.5px;line-height:1.6;color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:16px 18px;white-space:pre-wrap;word-wrap:break-word;margin:0 0 14px;max-height:420px;overflow:auto;}
+.copy-msg{min-height:20px;color:var(--ink);font-size:14px;text-align:center;margin:10px 0 0;}
+.copy-msg.ok{color:var(--good);}
+.tip{text-align:center;color:var(--muted);font-size:14px;max-width:680px;margin:18px auto 0;line-height:1.5;}
+.proj{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 auto 16px;max-width:720px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;justify-content:space-between;}
+.proj .lbl{width:100%;margin-bottom:0;}
+.proj-txt{margin:0;font-size:14px;line-height:1.5;color:var(--ink);flex:1;min-width:200px;}
+.dl-panel{margin:28px auto 0;max-width:720px;padding:20px 22px;text-align:center;}
+.dl-panel .lbl{margin-bottom:6px;}
+.dl-txt{font-size:14px;line-height:1.55;color:var(--muted);margin:0 0 14px;}
+.dl-row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.dl-row a{text-decoration:none;}
+.dl-steps{text-align:left;max-width:520px;margin:14px auto 0;font-size:14px;line-height:1.6;color:var(--muted);padding-left:20px;}
+</style></head><body><div class="wrap">
+<a class="back" href="../index.html#ia">← Volver a IA</a>
+<p class="eyebrow">IA · Keyword research</p>
+<h1>Generador de prompts</h1>
+<p class="sub">Responde unas preguntas sobre tu proyecto y te preparo el prompt listo para copiar en tu asistente de IA.</p>
+<section class="gen" id="gen" style="margin-top:0">
+  <p class="eyebrow">Tu turno</p>
+  <div class="panel gen-panel">
+    <h2 class="gen-title">Genera tu prompt de keyword research</h2>
+    <p class="gen-sub">Elige una tarea. La herramienta te irá preguntando lo necesario (negocio, público, dominio, keyword…) y al final tendrás un prompt listo para copiar.</p>
+    <div class="task-row" id="taskRow">
+      <button class="task-btn" data-task="1">1 · Lluvia de ideas</button>
+      <button class="task-btn" data-task="2">2 · Preguntas y ángulos</button>
+      <button class="task-btn" data-task="3">3 · Agrupar listas</button>
+      <button class="task-btn" data-task="4">4 · Primer briefing</button>
+    </div>
+    <div class="proj" id="projBox" style="display:none;"><span class="lbl">Datos del proyecto (guardados)</span><p class="proj-txt" id="projText"></p><button class="ctrl-btn" id="projEdit">Cambiar datos del proyecto</button></div>
+    <div class="wiz" id="wiz" style="display:none;">
+      <div class="wiz-prog"><div class="wiz-fill" id="wizFill"></div></div>
+      <span class="lbl" id="wizCount"></span>
+      <p class="wiz-q" id="wizQ"></p>
+      <div id="wizField"></div>
+      <div class="wiz-nav">
+        <button class="ctrl-btn" id="wizPrev">&larr; Anterior</button>
+        <button class="ctrl-btn play" id="wizNext">Siguiente &rarr;</button>
+      </div>
+    </div>
+    <div class="wiz-out" id="wizOut" style="display:none;">
+      <span class="lbl">Tu prompt</span>
+      <pre class="prompt-box" id="promptBox"></pre>
+      <div class="wiz-nav">
+        <button class="ctrl-btn play" id="copyBtn">Copiar prompt</button>
+        <button class="ctrl-btn" id="editBtn">Editar respuestas</button>
+        <button class="ctrl-btn" id="restartBtn">Empezar de nuevo</button>
+      </div>
+      <p class="copy-msg" id="copyMsg"></p>
+    </div>
+  </div>
+  <p class="tip">Consejo: cuanto más contexto le des al modelo, más útil será el resultado. Los volúmenes y posiciones que proponga la IA deben verificarse siempre en una herramienta SEO.</p>
+</section>
+  <div class="panel dl-panel">
+    <span class="lbl">Instalar en Claude</span>
+    <div class="dl-row"><a class="ctrl-btn play" href="descargas/keyword-research-prompts.zip" download>Descargar skill (.zip)</a></div>
+    <ol class="dl-steps">
+      <li>Descarga el archivo .zip y no lo descomprimas.</li>
+      <li>En Claude, entra en Configuración y busca la sección de Skills.</li>
+      <li>Pulsa Subir o Añadir skill y elige el .zip.</li>
+      <li>Listo: al pedir prompts de keyword research, Claude usará la skill.</li>
+    </ol>
+  </div>
+<script>
+/* ===== Generador de prompts: datos del proyecto una sola vez ===== */
+(function(){
+  var STORAGE_KEY = 'kwPrompts.proyecto';
+
+  var QUESTIONS = {
+    base: [
+      {key:'negocio', q:'¿Cuál es tu negocio o proyecto? Descríbelo en una frase.', type:'text', req:true, ph:'Ej.: Academia de inglés online para adultos'},
+      {key:'tipo', q:'¿Qué tipo de negocio es?', type:'select', req:true, opts:['E-commerce / tienda online','Servicios locales','Academia o formación','Blog o medio de contenidos','SaaS o software','Otro']},
+      {key:'dominio', q:'¿Cuál es tu dominio o web? (opcional)', type:'text', req:false, ph:'Ej.: speakup.es'},
+      {key:'publico', q:'¿Para quién es? Describe a tu cliente ideal.', type:'text', req:true, ph:'Ej.: adultos que quieren mejorar su inglés para trabajar'},
+      {key:'pais', q:'¿En qué mercado trabajas?', type:'select', req:true, opts:['España','Latinoamérica','Otro / global']}
+    ],
+    1: [
+      {key:'semilla', q:'¿Cuál es la palabra semilla? La idea principal de la que partes.', type:'text', req:true, ph:'Ej.: clases de inglés'}
+    ],
+    2: [
+      {key:'keyword', q:'¿Cuál es la keyword principal de la página?', type:'text', req:true, ph:'Ej.: clases de inglés online'},
+      {key:'tipoPagina', q:'¿Qué tipo de página será?', type:'select', req:true, opts:['Blog / guía','Categoría','Producto o servicio','Landing','FAQ']}
+    ],
+    3: [
+      {key:'lista', q:'Pega tu lista de keywords, una por línea.', type:'textarea', req:true, ph:'clases de inglés\nacademia de inglés online\naprender inglés gratis\n...'}
+    ],
+    4: [
+      {key:'keyword', q:'¿Cuál es la keyword principal?', type:'text', req:true, ph:'Ej.: academia de inglés online para adultos'},
+      {key:'secundarias', q:'¿Qué keywords secundarias quieres incluir? (opcional)', type:'text', req:false, ph:'Separadas por comas'},
+      {key:'intencion', q:'¿Qué intención tiene la búsqueda?', type:'select', req:true, opts:['Informacional (quiere aprender)','Comercial (compara opciones)','Transaccional (quiere comprar o apuntarse)']},
+      {key:'objetivo', q:'¿Qué tiene que conseguir la página?', type:'select', req:true, opts:['Vender o matricular','Captar leads o contactos','Informar y generar confianza']},
+      {key:'competidores', q:'¿Qué competidores ya posicionan? (opcional, URLs o nombres)', type:'text', req:false, ph:'Ej.: academia-x.es, academia-y.com'},
+      {key:'tono', q:'¿Qué tono y extensión orientativa? (opcional)', type:'text', req:false, ph:'Ej.: cercano, unas 1.500 palabras'}
+    ]
+  };
+
+  var PROJECT_KEYS = QUESTIONS.base.map(function(q){ return q.key; });
+
+  var wiz = document.getElementById('wiz');
+  var wizOut = document.getElementById('wizOut');
+  var wizFill = document.getElementById('wizFill');
+  var wizCount = document.getElementById('wizCount');
+  var wizQ = document.getElementById('wizQ');
+  var wizField = document.getElementById('wizField');
+  var wizPrev = document.getElementById('wizPrev');
+  var wizNext = document.getElementById('wizNext');
+  var promptBox = document.getElementById('promptBox');
+  var copyBtn = document.getElementById('copyBtn');
+  var editBtn = document.getElementById('editBtn');
+  var restartBtn = document.getElementById('restartBtn');
+  var copyMsg = document.getElementById('copyMsg');
+  var taskBtns = document.querySelectorAll('.task-btn');
+  var projBox = document.getElementById('projBox');
+  var projText = document.getElementById('projText');
+  var projEdit = document.getElementById('projEdit');
+
+  var currentTask = null, qList = [], qIdx = 0, answers = {};
+
+  function v(x){ return (x && String(x).trim()) || 'No indicado'; }
+  function filled(x){ return x !== undefined && x !== null && String(x).trim() !== ''; }
+
+  function loadProject(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return {};
+      var obj = JSON.parse(raw), out = {};
+      PROJECT_KEYS.forEach(function(k){ if(filled(obj[k])) out[k] = obj[k]; });
+      return out;
+    }catch(e){ return {}; }
+  }
+  function saveProject(){
+    var out = {};
+    PROJECT_KEYS.forEach(function(k){ if(filled(answers[k])) out[k] = answers[k]; });
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(out)); }catch(e){}
+  }
+  function hasProject(){
+    return QUESTIONS.base.every(function(q){ return !q.req || filled(answers[q.key]); });
+  }
+  function projectSummary(){
+    var pais = answers.pais ? ' · ' + answers.pais : '';
+    return '<strong>' + (answers.negocio || '') + '</strong><br>'
+      + (answers.tipo || '') + pais + (answers.dominio ? ' · ' + answers.dominio : '')
+      + '<br>Público: ' + (answers.publico || '');
+  }
+
+  function buildPrompt(t, a){
+    var head = 'Actúa como especialista en keyword research para SEO en español.\n\n'
+      + 'Contexto:\n'
+      + '- Negocio: ' + v(a.negocio) + '\n'
+      + '- Tipo de negocio: ' + v(a.tipo) + '\n'
+      + '- Web: ' + v(a.dominio) + '\n'
+      + '- Público objetivo: ' + v(a.publico) + '\n'
+      + '- Mercado: ' + v(a.pais) + '\n\n';
+    var body = '';
+    if(t === 1){
+      body = 'Palabra semilla: "' + v(a.semilla) + '"\n\n'
+        + 'Tarea:\n'
+        + '- Genera 20 variaciones de la semilla agrupadas por intención (informacional, comercial, transaccional y navegacional).\n'
+        + '- Propón 10 keywords de cola larga (3 o más palabras) que escribiría un cliente real.\n'
+        + '- Añade variaciones con modificadores habituales: precio, opiniones, cómo, mejor, para ' + v(a.publico) + '.\n\n'
+        + 'Indica la intención de cada una en una palabra. No inventes volúmenes de búsqueda: si los estimas, márcalos como estimación y sugiere cómo verificarlos.';
+    }
+    if(t === 2){
+      body = 'Keyword principal: "' + v(a.keyword) + '"\n'
+        + 'Tipo de página: ' + v(a.tipoPagina) + '\n\n'
+        + 'Tarea:\n'
+        + '- 15 preguntas que se hace el público antes, durante y después de buscar esta keyword (formato "¿...?").\n'
+        + '- 5 ángulos de contenido distintos (comparativa, guía paso a paso, errores comunes, caso práctico, FAQ), explicando en una frase qué problema resuelve cada uno.\n'
+        + '- Para cada ángulo, un H1 y dos H2 sugeridos.\n\n'
+        + 'Prioriza preguntas que se puedan responder con contenido útil, no solo con una definición.';
+    }
+    if(t === 3){
+      body = 'Lista de keywords:\n' + v(a.lista) + '\n\n'
+        + 'Tarea (primer borrador de mapa de contenidos):\n'
+        + '- Agrupa por tema o intención común, no por palabras sueltas compartidas.\n'
+        + '- Para cada grupo indica: nombre, keyword principal, keywords secundarias y tipo de página recomendado (blog, categoría, producto, landing o FAQ).\n'
+        + '- Señala las keywords que no encajan en ningún grupo y las casi duplicadas (posible canibalización).\n'
+        + '- Termina con una tabla: grupo | nº de keywords | intención dominante.\n\n'
+        + 'Es un borrador: indica qué agrupaciones tienen dudas y por qué.';
+    }
+    if(t === 4){
+      body = 'Keyword principal: "' + v(a.keyword) + '"\n'
+        + 'Keywords secundarias: ' + v(a.secundarias) + '\n'
+        + 'Intención de búsqueda: ' + v(a.intencion) + '\n'
+        + 'Objetivo de la página: ' + v(a.objetivo) + '\n'
+        + 'Competidores: ' + v(a.competidores) + '\n'
+        + 'Tono y extensión: ' + v(a.tono) + '\n\n'
+        + 'Tarea: redacta un primer borrador de briefing de contenido con:\n'
+        + '1. Objetivo de la pieza en dos frases.\n'
+        + '2. Estructura H1/H2/H3 que integre las keywords de forma natural.\n'
+        + '3. Preguntas que la pieza debe responder.\n'
+        + '4. Elementos obligatorios (CTA, enlaces internos sugeridos, datos o ejemplos).\n'
+        + '5. Errores que evitar.\n\n'
+        + 'Marca con [REVISAR] cualquier dato que haya que comprobar en Google o en una herramienta SEO.';
+    }
+    return head + body;
+  }
+
+  function isAnswered(q){
+    return !q.req || filled(answers[q.key]);
+  }
+
+  function renderProjBox(){
+    // Muestra el resumen de los datos del proyecto mientras se responde a la tarea
+    if(currentTask && hasProject() && qList.length && qList.indexOf(QUESTIONS.base[0]) === -1){
+      projBox.style.display = '';
+      projText.innerHTML = projectSummary();
+    } else {
+      projBox.style.display = 'none';
+    }
+  }
+
+  function renderQ(){
+    var q = qList[qIdx];
+    wiz.style.display = '';
+    wizOut.style.display = 'none';
+    wizFill.style.width = (qIdx / qList.length * 100) + '%';
+    wizCount.textContent = 'Pregunta ' + (qIdx + 1) + ' de ' + qList.length + (q.req ? '' : ' · opcional');
+    wizQ.textContent = q.q;
+
+    wizField.innerHTML = '';
+    var el;
+    if(q.type === 'select'){
+      el = document.createElement('select');
+      el.className = 'wiz-input';
+      var blank = document.createElement('option');
+      blank.value = ''; blank.textContent = 'Elige una opción…';
+      el.appendChild(blank);
+      q.opts.forEach(function(o){
+        var opt = document.createElement('option');
+        opt.value = o; opt.textContent = o;
+        el.appendChild(opt);
+      });
+    } else if(q.type === 'textarea'){
+      el = document.createElement('textarea');
+      el.className = 'wiz-input';
+    } else {
+      el = document.createElement('input');
+      el.type = 'text';
+      el.className = 'wiz-input';
+    }
+    if(q.ph) el.placeholder = q.ph;
+    el.value = answers[q.key] || '';
+    el.addEventListener('input', function(){
+      answers[q.key] = el.value;
+      wizNext.disabled = !isAnswered(q);
+    });
+    el.addEventListener('change', function(){
+      answers[q.key] = el.value;
+      wizNext.disabled = !isAnswered(q);
+    });
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' && el.tagName !== 'TEXTAREA' && !wizNext.disabled){
+        e.preventDefault(); wizNext.click();
+      }
+    });
+    wizField.appendChild(el);
+    setTimeout(function(){ el.focus(); }, 50);
+
+    wizPrev.disabled = (qIdx === 0);
+    wizNext.disabled = !isAnswered(q);
+    wizNext.innerHTML = (qIdx === qList.length - 1) ? 'Generar prompt ✓' : 'Siguiente &rarr;';
+    renderProjBox();
+  }
+
+  function showOutput(){
+    if(qList.indexOf(QUESTIONS.base[0]) !== -1) saveProject();
+    wiz.style.display = 'none';
+    projBox.style.display = 'none';
+    wizOut.style.display = '';
+    promptBox.textContent = buildPrompt(currentTask, answers);
+    copyMsg.textContent = '';
+    copyMsg.className = 'copy-msg';
+    wizOut.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+
+  function clearTaskAnswers(){
+    Object.keys(answers).forEach(function(k){
+      if(PROJECT_KEYS.indexOf(k) === -1) delete answers[k];
+    });
+  }
+
+  function selectTask(t){
+    currentTask = t;
+    clearTaskAnswers();
+    qList = hasProject() ? QUESTIONS[t] : QUESTIONS.base.concat(QUESTIONS[t]);
+    qIdx = 0;
+    taskBtns.forEach(function(b){
+      b.classList.toggle('active', Number(b.getAttribute('data-task')) === t);
+    });
+    renderQ();
+    document.getElementById('gen').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function editProject(){
+    // Vuelve a preguntar solo los datos del proyecto, conservando la tarea elegida
+    if(!currentTask) return;
+    clearTaskAnswers();
+    qList = QUESTIONS.base.concat(QUESTIONS[currentTask]);
+    qIdx = 0;
+    renderQ();
+  }
+
+  taskBtns.forEach(function(b){
+    b.addEventListener('click', function(){ selectTask(Number(b.getAttribute('data-task'))); });
+  });
+
+  projEdit.addEventListener('click', editProject);
+
+  wizPrev.addEventListener('click', function(){
+    if(qIdx > 0){ qIdx--; renderQ(); }
+  });
+
+  wizNext.addEventListener('click', function(){
+    if(qIdx < qList.length - 1){ qIdx++; renderQ(); }
+    else { showOutput(); }
+  });
+
+  editBtn.addEventListener('click', function(){
+    if(!currentTask) return;
+    // Repasa la tarea completa para corregir cualquier respuesta
+    qList = (hasProject() ? [] : QUESTIONS.base).concat(QUESTIONS[currentTask]);
+    qIdx = 0;
+    renderQ();
+    wiz.scrollIntoView({behavior:'smooth', block:'center'});
+  });
+
+  restartBtn.addEventListener('click', function(){
+    wizOut.style.display = 'none';
+    wiz.style.display = 'none';
+    projBox.style.display = 'none';
+    taskBtns.forEach(function(b){ b.classList.remove('active'); });
+    currentTask = null;
+    clearTaskAnswers();
+    document.getElementById('taskRow').scrollIntoView({behavior:'smooth', block:'center'});
+  });
+
+  copyBtn.addEventListener('click', function(){
+    var text = promptBox.textContent;
+    function ok(){ copyMsg.textContent = 'Prompt copiado ✓'; copyMsg.className = 'copy-msg ok'; }
+    function fallback(){
+      try{
+        var r = document.createRange();
+        r.selectNodeContents(promptBox);
+        var sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(r);
+        copyMsg.textContent = 'Selecciona el texto y cópialo con Ctrl+C (o Cmd+C).';
+      }catch(err){
+        copyMsg.textContent = 'No se pudo copiar automáticamente. Cópialo a mano.';
+      }
+    }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(ok, fallback);
+      } else { fallback(); }
+    }catch(err){ fallback(); }
+  });
+
+  // Arranque: recupera los datos del proyecto si ya se guardaron
+  answers = loadProject();
+  if(hasProject()){
+    projText.innerHTML = projectSummary();
+  }
+})();
+</script>
+</body></html>

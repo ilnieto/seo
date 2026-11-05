@@ -1,22 +1,72 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SEO · Animaciones</title>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SEO · Animaciones e IA</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <style>
 :root{--bg:#0b0e12;--panel:#11161d;--panel-2:#161d26;--line:#232b34;--ink:#ffffff;--muted:#f0f3f6;--accent:#4dd9c0;--accent-2:#f2a154;}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,sans-serif;padding:44px 16px 80px}
 .wrap{max-width:860px;margin:0 auto}.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-align:center;margin:0 0 12px}
-h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:28px;font-weight:600;margin:0 0 10px}.sub{text-align:center;color:var(--muted);font-size:14px;margin:0 auto 34px;max-width:620px;line-height:1.55}
+h1{text-align:center;font-family:"IBM Plex Mono",monospace;font-size:28px;font-weight:600;margin:0 0 10px}.sub{text-align:center;color:var(--muted);font-size:14px;margin:0 auto 30px;max-width:620px;line-height:1.55}
+/* pestañas */
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:0 0 26px}
+.tab{font-family:"IBM Plex Mono",monospace;font-size:13px;letter-spacing:.05em;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;margin-bottom:-1px;cursor:pointer;transition:color .2s,border-color .2s}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabpanel[hidden]{display:none}
 .item{display:flex;align-items:center;gap:16px;padding:18px 18px;margin-bottom:10px;background:var(--panel);border:1px solid var(--line);border-radius:9px;color:var(--ink);text-decoration:none;transition:border-color .2s,background .2s}
 .item:hover{border-color:var(--accent);background:var(--panel-2)}
 .up{font-family:"IBM Plex Mono",monospace;font-size:13px;font-weight:600;color:var(--accent-2);width:70px;flex:none;letter-spacing:.05em}
 .tt{flex:1;font-size:16px}.tt small{display:block;color:var(--muted);opacity:.75;font-size:12.5px;margin-top:3px}
 .n{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent);flex:none}
+.new{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent-2);border:1px solid var(--accent-2);border-radius:999px;padding:2px 8px;margin-left:8px;vertical-align:middle}
+.empty{font-size:14px;color:var(--muted);text-align:center;padding:24px 0}
 .author{margin-top:44px;padding-top:22px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:6px 14px;font-size:14px}
 .author .lbl{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);opacity:.7}
 .author a{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--accent);text-decoration:none}.author a:hover{text-decoration:underline}
 @media(max-width:600px){.item{flex-wrap:wrap;gap:6px}.up{width:auto}}
-</style></head><body><div class="wrap"><p class="eyebrow">SEO · Animaciones didácticas</p><h1>Unidades de programación</h1>
-<p class="sub">Elige una unidad para ver sus animaciones, ordenadas según las presentaciones, y las soluciones animadas de las prácticas.</p>
-<!-- Para añadir una unidad: copia el bloque <a class="item"> y cambia la ruta a su 00_INDICE_animaciones.html -->
-<a class="item" href="UP2_Keyword_research/00_INDICE_animaciones.html"><span class="up">UP2</span><span class="tt">Investigación de palabras clave<small>Keyword research · 12 animaciones + 1 práctica</small></span><span class="n">Abrir →</span></a>
+</style></head><body><div class="wrap">
+<p class="eyebrow">SEO · Material didáctico</p><h1>Unidades de programación</h1>
+<p class="sub">Elige una pestaña: las animaciones de cada unidad, o los recursos de IA que vamos creando.</p>
+
+<nav class="tabs" role="tablist">
+  <button class="tab" role="tab" id="tab-anim" aria-controls="panel-anim" aria-selected="true" data-tab="anim">Animaciones</button>
+  <button class="tab" role="tab" id="tab-ia" aria-controls="panel-ia" aria-selected="false" data-tab="ia">IA</button>
+</nav>
+
+<!-- Pestaña: Animaciones -->
+<section class="tabpanel" role="tabpanel" id="panel-anim" aria-labelledby="tab-anim">
+  <!-- Para añadir una unidad: copia el bloque <a class="item"> y cambia la ruta a su 00_INDICE_animaciones.html -->
+  <a class="item" href="UP2_Keyword_research/00_INDICE_animaciones.html"><span class="up">UP2</span><span class="tt">Investigación de palabras clave<small>Keyword research · 12 animaciones + 1 práctica</small></span><span class="n">Abrir →</span></a>
+</section>
+
+<!-- Pestaña: IA (todo lo nuevo que hagamos con IA va aquí) -->
+<section class="tabpanel" role="tabpanel" id="panel-ia" aria-labelledby="tab-ia" hidden>
+  <!-- Para añadir un recurso: copia el bloque <a class="item"> y apunta a su archivo dentro de IA/ -->
+  <a class="item" href="IA/prompts-keyword-research.html"><span class="up">IA</span><span class="tt">Generador de prompts de keyword research<span class="new">Nuevo</span><small>Responde unas preguntas y obtén el prompt listo para copiar</small></span><span class="n">Abrir →</span></a>
+</section>
+
 <footer class="author"><span class="lbl">Autor</span><strong>Iván Nieto</strong><a href="mailto:ivan014@gmail.com">ivan014@gmail.com</a></footer>
-</div></body></html>
+</div>
+<script>
+(function(){
+  var tabs = document.querySelectorAll('.tab');
+  function show(name){
+    if(name !== 'anim' && name !== 'ia') name = 'anim';
+    tabs.forEach(function(t){
+      var on = t.getAttribute('data-tab') === name;
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.getElementById('panel-anim').hidden = (name !== 'anim');
+    document.getElementById('panel-ia').hidden = (name !== 'ia');
+  }
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){
+      var name = t.getAttribute('data-tab');
+      show(name);
+      try{ history.replaceState(null, '', '#' + name); }catch(e){}
+    });
+  });
+  var initial = (location.hash || '').replace('#', '');
+  show(initial);
+  window.addEventListener('hashchange', function(){ show((location.hash || '').replace('#','')); });
+})();
+</script>
+</body></html>
